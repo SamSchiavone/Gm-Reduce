@@ -134,6 +134,16 @@ intrinsic MultivariateToUnivariate(f::RngMPolElt) -> RngUPolElt
   return eval(fstring);
 end intrinsic;
 
+// Another possibility
+/*
+  R<x,y> := PolynomialRing(K,2);
+  S0<X> := PolynomialRing(K);
+  S<Y> := PolynomialRing(S0);
+  mp_x := hom< S0 -> R | x >;
+  mp_y := hom< S -> R | mp_x, [y]>;
+  mp_xy := hom< R -> S | [X, Y] >;
+*/
+
 intrinsic MonicToIntegral(f::RngUPolElt : Minkowski := true) -> Any
   {scale the monic univariate polynomial to be integral}
   assert IsMonic(f);
@@ -155,7 +165,10 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   {factorise the polynomial f and return it as a string. Needs to be a multivariate polynomial in K[x][t]}
 
   coefs:=Coefficients(f);
-  mon:=Monomials(f);
+  mons:=Monomials(f);
+  if #coefs eq 0 and #mons eq 0 then // f = 0
+    return Sprint(0);
+  end if;
   str:="";
   for j in [1..#coefs] do
     if j ne 1 then
@@ -170,12 +183,14 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
     a /:= co^item[2];
     end for;
 
+    //if a ne 1 then
     str:= str cat Sprintf("(%o)",a);
+    //end if;
     for i in [1..#list] do
       str:= str cat Sprintf("*(%o)^%o", list[i,2],list[i,3]);
     end for;
     if j ne 1 then
-      str:=str cat Sprintf("*%o",mon[j]);
+      str:=str cat Sprintf("*%o",mons[j]);
     end if;
   end for;
 
