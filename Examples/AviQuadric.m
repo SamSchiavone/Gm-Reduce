@@ -5,9 +5,8 @@ q1 := u1^2 - 81920000/15165891*u2^2 - 327680000/107811*u3^2;
 q2 := u0^2 - 117406179/6525845768*u2^2 + 1033857/4394*u3^2;
 q0 := -u0^2 + 864536409/110755840000*u1^2 - 26136/28561*u0*u2 - 170772624/815730721*u2^2 - 264627/135200*u1*u3 + 20736/169*u3^2;
 
-c1,m1:=CoefficientsAndMonomials(q1);
-c2,m2:=CoefficientsAndMonomials(q2);
-c0,m0:=CoefficientsAndMonomials(q0);
+pols:=[q1,q2,q0];
+ReducedEquations(pols);
 
 allmon:=Setseq(Set(m1 cat m2 cat m0));
 

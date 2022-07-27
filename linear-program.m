@@ -863,7 +863,7 @@ intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum
   k:=RealField(20);
   lp_size:=var_size+#pols;
 
-/*  lp_size:=#variables+#pols;
+  lp_size:=#variables+#pols;
   Ob<[Y]>:=PolynomialRing(Integers(),lp_size);
   obj_fun:=Ob!0;
   zeroes :=[  0 : t in [1..#pols-1] ];
@@ -884,8 +884,6 @@ intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum
       Append(~lhs_coefs,exps cat scaling1);
     end for;
   end for;
-  obj_fun;
-  lhs_coefs;
 
   SS:=[];
   for pol in pols do
@@ -915,7 +913,7 @@ intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum
     SetObjectiveFunction(L, obj);
     SetIntegerSolutionVariables(L,[ i : i in [1..lp_size]], true);
     AddConstraints(L, lhs, rhs : Rel := "ge");
-    for i in [1..lp_size] do  SetLowerBound(L, i, k!-50); end for;
+    for i in [1..lp_size] do  SetLowerBound(L, i, k!-10); end for;
 
     soln,state:=Solution(L);
     assert state eq 0;
@@ -925,52 +923,10 @@ intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum
     scaling_factors:= [ scaling_factors[i]*(p^soln[i]) : i in [1..#soln] ];
   end for;
 
-  [ Evaluate(pols[j],[(BaseRing(Parent(pols[j]))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(pols[j]))!scaling_factors[var_size+j] : j in [1..#pols] ];
+  guvs:=[ Evaluate(pols[j],[(BaseRing(Parent(pols[j]))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(pols[j]))!scaling_factors[var_size+j] : j in [1..#pols] ];
 
-  return guv, [K!el : el in scaling_factors];
+  return guvs, [K!el : el in scaling_factors];
 
-
-  new_pols := [ Evaluate(pol, )
-
-  rescaling_ideals:=[[ 1 : i in [1..n+1] ]];
-  lp_size:=n+1;
-end if;
-
-  new_c := 1;
-  new_f:=f;
-
-  SS:=CoefficientSupport(f);
-  //S is the prime divisors of all norms of numerators and denominators of coeffients
-
-  minimal_solutions:=[];
-  for pp in SS do
-    cvals := [ Valuation(c,pp) : c in coefs  ];
-    rhs := Matrix(k, [[-cf] : cf in cvals]);          //valuations
-    if Integral eq false then
-      L:=MinimiseL1ToLinearProgram(lhs, -rhs);
-      soln,state:=Solution(L);
-      assert state eq 0;
-      soln:= [ Eltseq(soln)[i] : i in [1..NumberOfColumns(lhs)] ];
-      points_loop:=[soln];
-
-
-
-
-
-  c2,m2:=CoefficientsAndMonomials(q2);
-  c0,m0:=CoefficientsAndMonomials(q0);
-
-  allmon:=Setseq(Set(m1 cat m2 cat m0));*/
-
-
-
-
-  /*coefs_and_monomials:= [ [Coefficients(f)[i],Monomials(f)[i]] : i in [1..#Coefficients(f)] ];
-  mexps := [ Exponents(m[2]) : m in coefs_and_monomials ];
-  m:=#mexps;
-  coefs:=[ K!a[1] : a  in coefs_and_monomials ];*/
-
-  return 1;
 end intrinsic;
 
 
