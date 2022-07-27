@@ -1,12 +1,35 @@
-AttachSpec("spec");                                          
-K<nu> := QuadraticField(2);
+AttachSpec("spec");
+R<z>:=PolynomialRing(Rationals());
+K<nu> := NumberField(z^2-2);
 R<t,x> := PolynomialRing(K,2);
 ZK := Integers(K);
-epsilon := FundamentalUnit(ZK);
+UK,mUK:=UnitGroup(K);
+epsilon:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) ][1];
 f := 5*x^3 - 2*epsilon^7*t*x;
-f_red, abc := reducemodel_units(f);
-f_red;
+coefs:=Coefficients(f);
+fred, abc := reducemodel_units(f);
+inf_places:=InfinitePlaces(K);
+prec:=100;
+k:=RealField(prec);
+phi:=function(x);
+  return [ Log(k!Abs(Evaluate(x,v : Precision:=prec))) : v in inf_places ];
+  //assert first r places are real.
+end function;
+
+
 f;
+fred;
+abc;
+
+
+
+avg1:=ClosestElementInUnitHyperplane(coefs[1]);
+avg2:=ClosestElementInUnitHyperplane(coefs[2]);
+
+best_eps:=(avg1+avg2)/2;
+phi(epsilon);
+[ (close1[i] +close2[i])/2 : i in [1..2] ];
+
 places := InfinitePlaces(K);
 a := abc[1];
 v := places[1];

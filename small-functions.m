@@ -64,4 +64,3 @@ intrinsic SmallFunctionsExactDegree(Qs::SeqEnum[PlcCrvElt], d::RngIntElt) -> Seq
     return [ s : s in sfd | s notin sfd1 ];
   end if;
 end intrinsic;
-
