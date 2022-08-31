@@ -128,7 +128,7 @@ intrinsic MultivariateToUnivariate(f::RngMPolElt) -> RngUPolElt
   {turns an element f in K[x,t] into an element K[x][t]}
 
   fstring:=Sprint(f);
-  K<nu1> := BaseRing(Parent(f));
+  K<nu> := BaseRing(Parent(f));
   Kx<x>:=PolynomialRing(K);
   Kxt<t>:=PolynomialRing(Kx);
   return eval(fstring);
@@ -194,7 +194,7 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
     end if;
   end for;
 
-  K<nu1>:=BaseRing(BaseRing(f));
+  K<nu>:=BaseRing(BaseRing(f));
   Kx<x>:=PolynomialRing(K);
   Kxt<t>:=PolynomialRing(Kx);
 
@@ -206,4 +206,22 @@ end intrinsic;
 intrinsic DisplayPolynomial(f::RngMPolElt) -> MonStgElt
   {factor the polynomial}
   return PolynomialToFactoredString(MultivariateToUnivariate(f));
+end intrinsic;
+
+intrinsic LoadDataRow(s::MonStgElt) -> Any
+  {Take a row of data and return the plane equation and plane constant}
+  spl := Split(s, "|");
+  fld := spl[2];
+  fld := ReplaceAll(fld, "{", "[");
+  fld := ReplaceAll(fld, "}", "]");
+  fld := eval fld;
+  if #fld ne 2 then
+    K<nu> := NumberField(Polynomial(fld));
+  else
+    K := RationalsAsNumberField();
+  end if;
+  R<t,x> := PolynomialRing(K,2);
+  f := eval spl[4];
+  a := eval spl[5];
+  return f, a;
 end intrinsic;
