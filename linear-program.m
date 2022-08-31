@@ -110,10 +110,14 @@ intrinsic RemoveInfinitesimal(a::FldReElt,N::FldRatElt,prec::RngIntElt) -> FldRe
   end if;
 end intrinsic;
 
-intrinsic CoefficientSupport(f::RngMPolElt) -> SeqEnum
+intrinsic CoefficientSupport(f::RngMPolElt : rationals:=true) -> SeqEnum
   {returns all of the primes ideals with nonzero valuation in the coefficients}
   if BaseRing(Parent(f)) eq Rationals() then
-    K:=RationalsAsNumberField();
+    if rationals ne true then
+      K:=RationalsAsNumberField();
+    else
+      K := Rationals();
+    end if;
   else
     K := BaseRing(Parent(f));
   end if;
@@ -208,9 +212,12 @@ intrinsic IgnorePrime(f::RngMPolElt,pp::RngOrdIdl) -> Any
   return ignore_prime;
 end intrinsic;
 
+
+
+
 intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReduction:=[]) -> RngMPolElt, SeqEnum
   {Input: a multivariate polynomial f \in K[z_1,..,z_n]; Output: minimal and integral c*f(a_1z_1,...,a_nz_n) and [a_1,...,a_n,c]
-  FixVariable is the set of variables to fix, include n+1 if no scaling is allowed}
+  FixedVariable is the set of variables to fix, include n+1 if no scaling is allowed}
   if BaseRing(Parent(f)) eq Rationals() then
     K:=RationalsAsNumberField();
   else
@@ -234,7 +241,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   if PrimesForReduction eq [] then
     support_init:=PrimesUpTo(10000,K);
   else
-    support_init:=PrimesForReduction;
+    support_init:=[ ZK!!p : p in PrimesForReduction];
   end if;
   SS:=[];
   for pp in support_init do
@@ -322,7 +329,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
 
 
-  for i in [1..lp_size] do  SetLowerBound(L, i, k!-10000); end for;
+  for i in [1..lp_size] do  SetLowerBound(L, i, k!-30); end for;
 
   soln,state:=Solution(L);
   assert state eq 0;
@@ -358,7 +365,7 @@ intrinsic reducemodel_padic_old(f::RngMPolElt : Integral:=true, ClearDenominator
   variables:=[ Parent(f).i : i in [1..#Names(Parent(f))] ];
   n:=#variables;
   ZK := Integers(K);
-  k:=Integers();
+  k:=RealField(30);
 
 
   if ClearDenominators eq true then
@@ -468,6 +475,8 @@ intrinsic reducemodel_padic_old(f::RngMPolElt : Integral:=true, ClearDenominator
       end if;
       //end if;
     end if;
+
+    points_loop := [ [ Integers()!Round(a) : a in Eltseq(PP) ] : PP in points_loop ];
 
     Append(~minimal_solutions,points_loop);
     //all triples of ideals to try rescaling by
@@ -644,7 +653,7 @@ intrinsic reducemodel_units_naive(f::RngMPolElt: effort:=0) -> RngMPolElt, SeqEn
   //oldlen; Sprint(f);
 
   repeat
-    //printf "trying units of exponent %o\n", exp;
+    printf "trying units of exponent %o\n", exp;
     S := [<#Sprint(f), [K!1,K!1,K!1]>];
     for u,v,w in us do
       tuple:=[u,v,w];
@@ -674,7 +683,7 @@ intrinsic reducemodel_units_naive(f::RngMPolElt: effort:=0) -> RngMPolElt, SeqEn
   max_exp:=10;
 
   repeat
-    //printf "trying %o tuples of units with random exponents up to %o\n", no_tuples, max_exp;
+    printf "trying %o tuples of units with random exponents up to %o\n", no_tuples, max_exp;
     B:=[<#Sprint(f), [K!1,K!1,K!1]>];
     ran :=[ [ [ Random(Integers(),max_exp) : i in [1..#UU] ] : j in [1..3] ] : k in [1..no_tuples] ];
     unit_tuples:= [ [ &*[ UU[i]^elt[i] : i in [1..#UU] ] : elt in list ] : list in ran ];
@@ -835,6 +844,124 @@ intrinsic reducemodel_unitsL2(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   end if;
 end intrinsic;
 
+
+
+intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum
+  {For multiple multivariate polynomials defined over the rationals,
+  do simultanous p-adic reduction}
+
+  assert BaseRing(Parent(pols[1])) eq Rationals();
+  /*if BaseRing(Parent(pols[1])) eq Rationals() then
+    K:=RationalsAsNumberField();
+    pols:=[ ChangeRing(f,K) : f in pols];
+  else*/
+    K := BaseRing(Parent(pols[1]));
+  //end if;
+  variables:=[ Parent(pols[1]).i : i in [1..#Names(Parent(pols[1]))] ];
+  var_size:=#variables;
+  ZK := Integers(K);
+  k:=RealField(20);
+  lp_size:=var_size+#pols;
+
+  lp_size:=#variables+#pols;
+  Ob<[Y]>:=PolynomialRing(Integers(),lp_size);
+  obj_fun:=Ob!0;
+  zeroes :=[  0 : t in [1..#pols-1] ];
+  lhs_coefs:=[];
+
+  for j in [1..#pols] do
+    co,mo:=CoefficientsAndMonomials(pols[j]);
+    assert 0 notin co;
+    mexps := [ Exponents(m) : m in mo ];
+    obj_j:= [ (&+[ m[i] : m in mexps])*Y[i] : i in [1..#variables] ];
+    obj_j := obj_j cat [#mo*Y[#variables+j]];
+    obj_j := &+(obj_j);
+    obj_fun:=obj_fun+obj_j;
+
+
+    scaling1:=Insert(zeroes, j,1);
+    for exps in mexps do
+      Append(~lhs_coefs,exps cat scaling1);
+    end for;
+  end for;
+
+  SS:=[];
+  for pol in pols do
+    for pp in CoefficientSupport(pol) do
+      Append(~SS,pp);
+    end for;
+  end for;
+  SS:=Setseq(Set(SS));
+  scaling_factors:= [K!1 : i in [1..lp_size]];
+
+  for pp in SS do
+
+    _,p:=IsPrincipal(pp);
+    rhs_coefs:=[];
+    for j in [1..#pols] do
+      co,mo:=CoefficientsAndMonomials(pols[j]);
+      for c in co do
+        Append(~rhs_coefs, [-Valuation(c,pp)]);
+      end for;
+    end for;
+
+    obj:=Matrix(k,1,lp_size,Coefficients(obj_fun));
+    lhs := Matrix(k, lhs_coefs);     //constraints
+    //rel := Matrix(k,[[1] : i in [1..#rhs] ]);
+    rhs := Matrix(k,rhs_coefs);
+    L := LPProcess(k, lp_size);
+    SetObjectiveFunction(L, obj);
+    SetIntegerSolutionVariables(L,[ i : i in [1..lp_size]], true);
+    AddConstraints(L, lhs, rhs : Rel := "ge");
+    for i in [1..lp_size] do  SetLowerBound(L, i, k!-10); end for;
+
+    soln,state:=Solution(L);
+    assert state eq 0;
+    soln:=Eltseq(soln);
+    soln:= [ Integers()!Round(s) : s in soln ];
+
+    scaling_factors:= [ scaling_factors[i]*(p^soln[i]) : i in [1..#soln] ];
+  end for;
+
+  guvs:=[ Evaluate(pols[j],[(BaseRing(Parent(pols[j]))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(pols[j]))!scaling_factors[var_size+j] : j in [1..#pols] ];
+
+  return guvs, [K!el : el in scaling_factors];
+
+end intrinsic;
+
+
+
+intrinsic SmallHyperplaneRepresentative(alpha::FldNumElt: prec:=0) -> ModMatRngElt
+  {Input: alpha an element of a number field and psi the minkowski Embedding
+  Output: An element in the hyperplane in minkowski space which is small in all coordinates}
+  K:=Parent(alpha);
+  inf_places:=InfinitePlaces(K);
+  if prec eq 0 then
+    prec:=10;
+  end if;
+  k:=RealField(prec);
+  VR:=VectorSpace(k,#inf_places);
+  return VR![ Log(Abs(Norm(alpha)))/#inf_places : i in [1..#inf_places] ];
+
+end intrinsic;
+
+
+intrinsic ClosestElementInUnitHyperplane(alpha::FldNumElt : prec:=0) -> ModMatRngElt
+  {Find the element in the hyperplane spanned by the units which is closest to
+   SmallHyperplaneRepresentative(alpha) - psi(alpha) }
+   K:=Parent(alpha);
+   inf_places:=InfinitePlaces(K);
+   if prec eq 0 then
+     prec:=10;
+   end if;
+   k:=RealField(prec);
+   VR:=VectorSpace(k,#inf_places);
+   psi:=function(x);
+     return [ Log(k!Abs(Evaluate(x,v : Precision:=prec))) : v in inf_places ];
+     //assert first r places are real.
+   end function;
+   return SmallHyperplaneRepresentative(alpha) - VR!psi(alpha);
+end intrinsic;
 
 
 intrinsic IdealShortVectorsProcess(I::RngOrdFracIdl, l::RngIntElt, u::RngIntElt : Minkowski:=true, timeout:=2) -> SeqEnum

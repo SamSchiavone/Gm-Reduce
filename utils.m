@@ -202,3 +202,8 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   return str;
 end intrinsic;
 
+
+intrinsic DisplayPolynomial(f::RngMPolElt) -> MonStgElt
+  {factor the polynomial}
+  return PolynomialToFactoredString(MultivariateToUnivariate(f));
+end intrinsic;
