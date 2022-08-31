@@ -170,9 +170,22 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
     a /:= co^item[2];
     end for;
 
-    str:= str cat Sprintf("(%o)",a);
+    //if a ne 1 then
+      if "+" in Sprint(a) or "-" in Sprint(a) then
+        str:= str cat Sprintf("(%o)",a);
+      else
+        str *:= Sprint(a);
+      end if;
+    //end if;
     for i in [1..#list] do
-      str:= str cat Sprintf("*(%o)^%o", list[i,2],list[i,3]);
+      if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
+        str:= str cat Sprintf("*(%o)", list[i,2]);
+      else
+        str:= str cat Sprintf("*%o", list[i,2]);
+      end if;
+      if list[i][3] ne 1 then
+        str *:= Sprintf("^%o", list[i][3]);
+      end if;
     end for;
     if j ne 1 then
       str:=str cat Sprintf("*%o",mon[j]);
@@ -184,6 +197,6 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   Kxt<t>:=PolynomialRing(Kx);
 
   assert f eq eval(str);
-  return str;
+  return ReplaceAll(str, "*", " ");
 end intrinsic;
 
