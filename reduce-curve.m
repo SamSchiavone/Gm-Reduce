@@ -38,7 +38,10 @@ intrinsic model(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolElt
   end if;
 
   _<t,x> := PolynomialRing(K,2);
-  f_plane:=Evaluate(fuv,[x,t,0]);
+  f_plane := Evaluate(fuv,[x,t,0]);
+  /*A2<t,x>:=AffineSpace(Rationals(),2);
+  C:=Curve(A2,f_plane);*/
+
   return f_plane;
   //x=v, t=u
 end intrinsic;
@@ -164,6 +167,29 @@ intrinsic PlaneModel(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolEl
 end intrinsic;
 
 
+intrinsic BestSmallFunction(phi) -> Any
+  {return first small function after sorting}
+  Kinit:=BaseRing(BaseRing(Parent(phi)));
+  degree:=Floor((Genus(Curve(Parent(phi)))+3)/2);
+  RsandPs := Support(Divisor(phi));
+  RsandQs := Support(Divisor(phi-1));
+  PsQsRs := SetToSequence(SequenceToSet(RsandPs cat RsandQs));
+
+  xs := SmallFunctions(PsQsRs, degree);
+  ts_xs_Fs_sorted := SortSmallFunctions(phi, xs : effort := 1);
+
+  while #ts_xs_Fs_sorted eq 0 do
+    degree +:= 1;
+    //printf "degree is now %o", degree;
+    xs := SmallFunctions(PsQsRs, degree);
+    ts_xs_Fs_sorted := SortSmallFunctions(phi, xs : effort := 1);
+  end while;
+
+  tup := ts_xs_Fs_sorted[1];
+  t, x, F := Explode(tup);
+  return x;
+end intrinsic;
+
 intrinsic UnreducedModel(phi::FldFunFracSchElt) -> RngMPolElt
   {return the first plane model/polynomial using sort small functions}
   Kinit:=BaseRing(BaseRing(Parent(phi)));
@@ -184,5 +210,16 @@ intrinsic UnreducedModel(phi::FldFunFracSchElt) -> RngMPolElt
 
   tup := ts_xs_Fs_sorted[1];
   t, x, F := Explode(tup);
-  return model(t,x);
+  return model(t,x), x;
+end intrinsic;
+
+intrinsic PlaneModel(phi::FldFunFracSchElt) -> RngMPolElt
+  {}
+  return UnreducedModel(phi);
+end intrinsic;
+
+intrinsic A2Curve(f::RngMPolElt) -> Crv
+  {make a curve from the plane model}
+  A2<t,x> := AffineSpace(Parent(f));
+  return Curve(A2,f);
 end intrinsic;
