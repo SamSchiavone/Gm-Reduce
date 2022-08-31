@@ -65,6 +65,47 @@ intrinsic ReplaceAll(string::MonStgElt, char1::MonStgElt, char2::MonStgElt) -> M
   return Pipe(Sprintf("sed \"s/%o/%o/g\"", char1, char2), string);
 end intrinsic;
 
+intrinsic ReplaceString(s::MonStgElt, fs::MonStgElt, ts::MonStgElt) -> MonStgElt
+    {Return a string obtained from the string s by replacing all occurences of the SINGLE character fs with ts.}
+    //assert #fs eq 1;
+    L := Split(s,fs);
+    if Index(s,fs) eq 1 then
+      L := [""] cat L;
+    end if;
+    fs_rev := Reverse(fs);
+    s_rev := Reverse(s);
+    if Index(s_rev, fs_rev) eq 1 then
+      L := L cat [""];
+    end if;
+    // Split doesn't deal with fs at the beginning or end of the string correctly.
+    //if s[1] eq fs then Insert(~L, 1, ""); end if;
+    //if s[#s] eq fs then Append(~L, ""); end if;
+    return Join(L, ts);
+end intrinsic;
+
+intrinsic ReplaceString(s::MonStgElt, fs::[MonStgElt], ts::[MonStgElt]) -> MonStgElt
+  {Return a string obtained from the string s by replacing all occurences of strings in fs with strings in ts.}
+  // assert not (true in [ts[i] in s : i in [1..#ts]]);
+  for i:=1 to #fs do
+    s:=ReplaceString(s,fs[i],ts[i]);
+  end for;
+  return s;
+end intrinsic;
+
+// procedure versions
+intrinsic ReplaceString(~s::MonStgElt, fs::MonStgElt, ts::MonStgElt)
+  {In the string s, replace all occurences of fs with ts.}
+  s := ReplaceString(s,fs,ts);
+end intrinsic;
+
+intrinsic ReplaceString(~s::MonStgElt, fs::[MonStgElt], ts::[MonStgElt])
+  {In the string s, replace all occurences of strings in fs with strings in ts.}
+  for i:=1 to #fs do
+    ReplaceString(~s,fs[i],ts[i]);
+  end for;
+end intrinsic;
+
+
 intrinsic ComputeThirdRamificationValue(f::RngMPolElt) -> Any
   {Given a polynomial f(t,x) defining a plane curve where t is a 3-point branched cover ramified over 0, oo, and s, return s}
   C := Curve(AffineSpace(Parent(f)), f);
@@ -180,14 +221,25 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
     for item in fac do
       int,co:= MonicToIntegral(item[1]);
       Append(~list,<co,int,item[2]>);
-    a /:= co^item[2];
+      a /:= co^item[2];
     end for;
 
-    //if a ne 1 then
-    str:= str cat Sprintf("(%o)",a);
-    //end if;
+    if "+" in Sprint(a) or "-" in Sprint(a) then
+      str:= str cat Sprintf("(%o)",a);
+    elif a eq 1 then
+      str *:= "";
+    else
+      str *:= Sprint(a);
+    end if;
     for i in [1..#list] do
-      str:= str cat Sprintf("*(%o)^%o", list[i,2],list[i,3]);
+      if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
+        str:= str cat Sprintf("*(%o)", list[i,2]);
+      else
+        str:= str cat Sprintf("*%o", list[i,2]);
+      end if;
+      if list[i][3] ne 1 then
+        str *:= Sprintf("^%o", list[i][3]);
+      end if;
     end for;
     if j ne 1 then
       str:=str cat Sprintf("*%o",mons[j]);
@@ -199,6 +251,10 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   Kxt<t>:=PolynomialRing(Kx);
 
   assert f eq eval(str);
+  str := ReplaceString(str, "*", " \\cdot ");
+  str := ReplaceString(str, "(", "\\left(");
+  str := ReplaceString(str, ")", "\\right)");
+  str := ReplaceString(str, "nu", "\\nu");
   return str;
 end intrinsic;
 
@@ -212,8 +268,8 @@ intrinsic LoadDataRow(s::MonStgElt) -> Any
   {Take a row of data and return the plane equation and plane constant}
   spl := Split(s, "|");
   fld := spl[2];
-  fld := ReplaceAll(fld, "{", "[");
-  fld := ReplaceAll(fld, "}", "]");
+  fld := ReplaceString(fld, "{", "[");
+  fld := ReplaceString(fld, "}", "]");
   fld := eval fld;
   if #fld ne 2 then
     K<nu> := NumberField(Polynomial(fld));
