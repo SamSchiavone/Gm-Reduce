@@ -205,44 +205,63 @@ end intrinsic;
 intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   {factorise the polynomial f and return it as a string. Needs to be a multivariate polynomial in K[x][t]}
 
-  coefs:=Coefficients(f);
+  coefs:=Coefficients(f); // coefficients are polys in x
   mons:=Monomials(f);
   if #coefs eq 0 and #mons eq 0 then // f = 0
     return Sprint(0);
   end if;
   str:="";
   for j in [1..#coefs] do
-    if j ne 1 then
-      str:=str cat " + ";
-    end if;
-    a:=LeadingCoefficient(coefs[j]);
-    fac:=Factorization(coefs[j]);
-    list:=[];
-    for item in fac do
-      int,co:= MonicToIntegral(item[1]);
-      Append(~list,<co,int,item[2]>);
-      a /:= co^item[2];
-    end for;
+    if coefs[j] ne 0 then
+      a:=LeadingCoefficient(coefs[j]);
+      fac:=Factorization(coefs[j]);
+      list:=[];
+      for item in fac do
+        poly,const:= MonicToIntegral(item[1]);
+        a /:= const^item[2];
+        Append(~list,<const,poly,item[2]>);
+      end for;
+      if j ne 1 then
+        if Sprint(a)[1] eq "-" then
+          str *:= " - ";
+          a := -a;
+        else
+          str *:= " + ";
+        end if;
+      end if;
 
-    if "+" in Sprint(a) or "-" in Sprint(a) then
-      str:= str cat Sprintf("(%o)",a);
-    elif a eq 1 then
-      str *:= "";
-    else
-      str *:= Sprint(a);
-    end if;
-    for i in [1..#list] do
-      if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
-        str:= str cat Sprintf("*(%o)", list[i,2]);
+      if "+" in Sprint(a) or "-" in Sprint(a) then
+        str:= str cat Sprintf("(%o)",a);
+      elif (a eq 1) and (coefs[j] ne 1) then
+        str *:= "";
+      elif (a eq 1) and (coefs[j] eq 1) then
+        str *:= Sprintf("%o", a);
       else
-        str:= str cat Sprintf("*%o", list[i,2]);
+        str *:= Sprintf("%o", a);
       end if;
-      if list[i][3] ne 1 then
-        str *:= Sprintf("^%o", list[i][3]);
+      if (#list ne 0) and (a ne 1) then
+        str *:= "*";
       end if;
-    end for;
-    if j ne 1 then
-      str:=str cat Sprintf("*%o",mons[j]);
+      for i in [1..#list] do
+        if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
+          str:= str cat Sprintf("(%o)", list[i,2]);
+        else
+          str:= str cat Sprintf("%o", list[i,2]);
+        end if;
+        if list[i][3] ne 1 then
+          str *:= Sprintf("^%o", list[i][3]);
+        end if;
+        if i ne #list then
+          str *:= "*";
+        end if;
+      end for;
+      if j ne 1 then
+        if (str[#str-1..#str] eq "+ ") or (str[#str-1..#str] eq "- ") then
+          str *:= Sprintf("%o",mons[j]); // multiply by monomial in t
+        else
+          str *:= Sprintf("*%o",mons[j]); // multiply by monomial in t
+        end if;
+      end if;
     end if;
   end for;
 
@@ -250,11 +269,15 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   Kx<x>:=PolynomialRing(K);
   Kxt<t>:=PolynomialRing(Kx);
 
+  print str;
   assert f eq eval(str);
-  str := ReplaceString(str, "*", " \\cdot ");
+  // format for LaTeX
+  //str := ReplaceString(str, "*", " \\cdot ");
+  str := ReplaceString(str, "*", " ");
   str := ReplaceString(str, "(", "\\left(");
   str := ReplaceString(str, ")", "\\right)");
   str := ReplaceString(str, "nu", "\\nu");
+  // deal with 2-digit powers
   return str;
 end intrinsic;
 
