@@ -148,7 +148,7 @@ intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits
   if degree eq 0 then
     degree:=Floor((Genus(Curve(Parent(phi)))+3)/2);
   end if;
-  if NaiveUnits eq -1 then
+  if NaiveUnits cmpeq -1 then
     K := BaseRing(Curve(Parent(phi)));
     if Degree(K) ge 5 then // if number field has deg >= 5, do naive unit reduction
       NaiveUnits := true;

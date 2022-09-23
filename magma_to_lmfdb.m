@@ -1,4 +1,4 @@
-intrinsic BelyiDBToRows(s::BelyiDB) -> MonStgElt
+intrinsic BelyiDBToRows(s::BelyiDB : NaiveUnits := false) -> MonStgElt
   {}
   row := "";
   // galmaps dictionaries
@@ -19,7 +19,7 @@ intrinsic BelyiDBToRows(s::BelyiDB) -> MonStgElt
     phi := BelyiMaps(s)[inds[1]];
     KX := Parent(phi);
     K<nu> := BaseRing(BaseRing(KX));
-    f, a := BestModel(phi);
+    f, a := BestModel(phi : NaiveUnits := NaiveUnits);
     row *:= Sprintf("%o|%o|%o|%o", lmfdb_label, belyi_label, f, K!a);
     if i lt #gal_orbits then
       row *:= "\n";
