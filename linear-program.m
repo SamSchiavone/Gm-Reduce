@@ -239,7 +239,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
   //SS:= [ pp : pp in SS | Set([Valuation(cc,pp) : cc in coefs]) notin [{0,1},{0}] ];
   if PrimesForReduction eq [] then
-    support_init:=PrimesUpTo(10000,K);
+    support_init:=PrimesUpTo(3,K);
   else
     support_init:=[ ZK!!p : p in PrimesForReduction];
   end if;
@@ -330,7 +330,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
 
 
-  for i in [1..lp_size] do  SetLowerBound(L, i, k!-30); end for;
+  for i in [1..lp_size] do  SetLowerBound(L, i, k!-1000); end for;
 
   soln,state:=Solution(L);
   assert state eq 0;
