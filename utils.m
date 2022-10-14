@@ -235,14 +235,14 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   if #coefs eq 0 and #mons eq 0 then // f = 0
     return Sprint(0);
   end if;
-  str:="";
+  str := "";
   for j in [1..#coefs] do
     if coefs[j] ne 0 then
-      a:=LeadingCoefficient(coefs[j]);
-      fac:=Factorization(coefs[j]);
-      list:=[];
+      a := LeadingCoefficient(coefs[j]);
+      fac := Factorization(coefs[j]);
+      list := [];
       for item in fac do
-        poly,const:= MonicToIntegral(item[1]);
+        poly,const := MonicToIntegral(item[1]);
         a /:= const^item[2];
         Append(~list,<const,poly,item[2]>);
       end for;
@@ -255,8 +255,9 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
         end if;
       end if;
 
+      // TODO: fix the x^3 + 1t problem; 3T1-3_3_1.1.1-a
       if "+" in Sprint(a) or "-" in Sprint(a) then
-        str:= str cat Sprintf("(%o)",a);
+        str *:= Sprintf("(%o)",a);
       elif (a eq 1) and (coefs[j] ne 1) then
         str *:= "";
       elif (a eq 1) and (coefs[j] eq 1) then
@@ -269,9 +270,9 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
       end if;
       for i in [1..#list] do
         if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
-          str:= str cat Sprintf("(%o)", list[i,2]);
+          str:= str cat Sprintf("(%o)", list[i][2]);
         else
-          str:= str cat Sprintf("%o", list[i,2]);
+          str:= str cat Sprintf("%o", list[i][2]);
         end if;
         if list[i][3] ne 1 then
           str *:= Sprintf("^%o", list[i][3]);
