@@ -105,6 +105,31 @@ intrinsic ReplaceString(~s::MonStgElt, fs::[MonStgElt], ts::[MonStgElt])
   end for;
 end intrinsic;
 
+intrinsic PySplit(s::MonStgElt, sep::MonStgElt : limit:=-1) -> SeqEnum[MonStgElt]
+{Splits using Python semantics (different when #sep > 1, and different when sep at beginning or end)}
+    if #sep eq 0 then
+        error "Empty separator";
+    end if;
+    i := 1;
+    j := 0;
+    ans := [];
+    while limit gt 0 or limit eq -1 do
+        if limit ne -1 then limit -:= 1; end if;
+        pos := Index(s, sep, i);
+        if pos eq 0 then break; end if;
+        j := pos - 1;
+        Append(~ans, s[i..j]);
+        i := j + #sep + 1;
+    end while;
+    Append(~ans, s[i..#s]);
+    return ans;
+end intrinsic;
+
+intrinsic PyReplaceString(s::MonStgElt, sep::MonStgElt, rep::MonStgElt : limit:=-1) -> MonStgElt
+  {In the string s, replace all occurences of strings in fs with strings in ts. Uses PySplit to split}
+  spl := PySplit(s, sep : limit := limit);
+  return Join(spl, rep);
+end intrinsic;
 
 intrinsic ComputeThirdRamificationValue(f::RngMPolElt) -> Any
   {Given a polynomial f(t,x) defining a plane curve where t is a 3-point branched cover ramified over 0, oo, and s, return s}
@@ -203,7 +228,7 @@ intrinsic MonicToIntegral(f::RngUPolElt : Minkowski := true) -> Any
 end intrinsic;
 
 intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
-  {factorise the polynomial f and return it as a string. Needs to be a multivariate polynomial in K[x][t]}
+  {factorise the polynomial f and return it as a string. Needs to be a polynomial in K[x][t]}
 
   coefs:=Coefficients(f); // coefficients are polys in x
   mons:=Monomials(f);
@@ -269,38 +294,19 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   Kx<x>:=PolynomialRing(K);
   Kxt<t>:=PolynomialRing(Kx);
 
-  print str;
+  //printf "before LaTeXing: %o\n", str;
   assert f eq eval(str);
   // format for LaTeX
   //str := ReplaceString(str, "*", " \\cdot ");
-  str := ReplaceString(str, "*", " ");
-  str := ReplaceString(str, "(", "\\left(");
-  str := ReplaceString(str, ")", "\\right)");
-  str := ReplaceString(str, "nu", "\\nu");
-  // deal with 2-digit powers
+  str := PyReplaceString(str, "*", " ");
+  str := PyReplaceString(str, "(", "\\\\left(");
+  str := PyReplaceString(str, ")", "\\\\right)");
+  str := PyReplaceString(str, "nu", "\\\\nu");
+  // TODO: deal with 2-digit powers
   return str;
 end intrinsic;
-
 
 intrinsic DisplayPolynomial(f::RngMPolElt) -> MonStgElt
   {factor the polynomial}
   return PolynomialToFactoredString(MultivariateToUnivariate(f));
-end intrinsic;
-
-intrinsic LoadDataRow(s::MonStgElt) -> Any
-  {Take a row of data and return the plane equation and plane constant}
-  spl := Split(s, "|");
-  fld := spl[2];
-  fld := ReplaceString(fld, "{", "[");
-  fld := ReplaceString(fld, "}", "]");
-  fld := eval fld;
-  if #fld ne 2 then
-    K<nu> := NumberField(Polynomial(fld));
-  else
-    K := RationalsAsNumberField();
-  end if;
-  R<t,x> := PolynomialRing(K,2);
-  f := eval spl[4];
-  a := eval spl[5];
-  return f, a;
 end intrinsic;
