@@ -239,7 +239,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
   //SS:= [ pp : pp in SS | Set([Valuation(cc,pp) : cc in coefs]) notin [{0,1},{0}] ];
   if PrimesForReduction eq [] then
-    support_init:=PrimesUpTo(10000,K);
+    support_init:=PrimesUpTo(3,K);
   else
     support_init:=[ ZK!!p : p in PrimesForReduction];
   end if;
@@ -267,6 +267,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   L := LPProcess(k, lp_size);
   SetObjectiveFunction(L, obj);
   SetIntegerSolutionVariables(L,[ i : i in [1..lp_size]], true);
+  //SetIntegerSolutionVariables(L,[ i : i in [1+lp_size-#Generators(Cl)*(var_size+1)..lp_size]], true);
 
   if h eq 1 then
     extra_zeroes:=[ 0 : t in [1..(var_size+1)*(#SS-1)]];
@@ -329,7 +330,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
 
 
-  for i in [1..lp_size] do  SetLowerBound(L, i, k!-30); end for;
+  for i in [1..lp_size] do  SetLowerBound(L, i, k!-1000); end for;
 
   soln,state:=Solution(L);
   assert state eq 0;
@@ -353,6 +354,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
   return guv, [K!el : el in scaling_factors];
 end intrinsic;
+
 
 intrinsic reducemodel_padic_old(f::RngMPolElt : Integral:=true, ClearDenominators:=false, Minkowski:=true, Speedy:=false) -> RngMPolElt, SeqEnum
   {Input: a multivariate polynomial f \in K[z_1,..,z_n]; Output: minimal and integral c*f(a_1z_1,...,a_nz_n) and [a_1,...,a_n,c]}
