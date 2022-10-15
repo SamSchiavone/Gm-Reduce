@@ -35,9 +35,10 @@ id|geomtype|map|abc|base_field|triples_cyc|g|curve|orbit_size|label|a_s|pass_siz
     and return a boolean indicating whether the plane model is null or not, the label, plane equation, and plane constant}
   spl := Split(s, "|");
   label := spl[10];
+  printf "loading row for %o\n", label;
   fld := spl[5];
-  fld := ReplaceString(fld, "{", "[");
-  fld := ReplaceString(fld, "}", "]");
+  fld := PyReplaceString(fld, "{", "[");
+  fld := PyReplaceString(fld, "}", "]");
   fld := eval fld;
   if #fld ne 2 then
     K<nu> := NumberField(Polynomial(fld));

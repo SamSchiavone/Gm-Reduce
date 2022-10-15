@@ -231,12 +231,13 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   {factorise the polynomial f and return it as a string. Needs to be a polynomial in K[x][t]}
 
   coefs:=Coefficients(f); // coefficients are polys in x
-  mons:=Monomials(f);
+  mons:=Monomials(f); // monomials 1, t, t^2, ...
   if #coefs eq 0 and #mons eq 0 then // f = 0
     return Sprint(0);
   end if;
   str := "";
   for j in [1..#coefs] do
+    str_j := "";
     if coefs[j] ne 0 then
       a := LeadingCoefficient(coefs[j]);
       fac := Factorization(coefs[j]);
@@ -257,30 +258,36 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
 
       // TODO: fix the x^3 + 1t problem; 3T1-3_3_1.1.1-a
       if "+" in Sprint(a) or "-" in Sprint(a) then
-        str *:= Sprintf("(%o)",a);
+        str_j *:= Sprintf("(%o)",a);
       elif (a eq 1) and (coefs[j] ne 1) then
-        str *:= "";
+        str_j *:= "";
       elif (a eq 1) and (coefs[j] eq 1) then
-        str *:= Sprintf("%o", a);
+        str_j *:= Sprintf("%o", a);
       else
-        str *:= Sprintf("%o", a);
+        str_j *:= Sprintf("%o", a);
       end if;
       if (#list ne 0) and (a ne 1) then
-        str *:= "*";
+        str_j *:= "*";
       end if;
       for i in [1..#list] do
         if "+" in Sprint(list[i][2]) or "-" in Sprint(list[i][2]) then
-          str:= str cat Sprintf("(%o)", list[i][2]);
+          str_j *:= Sprintf("(%o)", list[i][2]);
         else
-          str:= str cat Sprintf("%o", list[i][2]);
+          str_j *:= Sprintf("%o", list[i][2]);
         end if;
         if list[i][3] ne 1 then
-          str *:= Sprintf("^%o", list[i][3]);
+          str_j *:= Sprintf("^%o", list[i][3]);
         end if;
         if i ne #list then
-          str *:= "*";
+          str_j *:= "*";
         end if;
       end for;
+      //printf "str_j = %o\n", str_j;
+      if (str_j eq "1") and (j ne 1) then
+        str *:= "";
+      else
+        str *:= str_j;
+      end if;
       if j ne 1 then
         if (str[#str-1..#str] eq "+ ") or (str[#str-1..#str] eq "- ") then
           str *:= Sprintf("%o",mons[j]); // multiply by monomial in t
