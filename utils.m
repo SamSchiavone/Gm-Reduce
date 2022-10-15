@@ -256,7 +256,6 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
         end if;
       end if;
 
-      // TODO: fix the x^3 + 1t problem; 3T1-3_3_1.1.1-a
       if "+" in Sprint(a) or "-" in Sprint(a) then
         str_j *:= Sprintf("(%o)",a);
       elif (a eq 1) and (coefs[j] ne 1) then
