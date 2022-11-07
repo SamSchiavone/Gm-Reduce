@@ -35,6 +35,8 @@ intrinsic SmallFunctions(Qs::SeqEnum[PlcCrvElt], d::RngIntElt) -> SeqEnum
       D := Dden-Dnum;
       // if Degree(D) ne 0 then continue; end if;
       if D eq Parent(D)!0 then continue; end if;
+      supp, mults := Support(D);
+      vprintf GmReduce: "Trying divisor with support %o and mults %o\n", supp, mults;
       RR, mRR := RiemannRochSpace(D);
       if Dimension(RR) eq 1 then
         x := mRR(RR.1);
