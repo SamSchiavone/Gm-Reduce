@@ -38,12 +38,13 @@ intrinsic SmallFunctions(Qs::SeqEnum[PlcCrvElt], d::RngIntElt) -> SeqEnum
       supp, mults := Support(D);
       vprintf GmReduce: "Trying divisor with support %o and mults %o\n", supp, mults;
       RR, mRR := RiemannRochSpace(D);
-      if Dimension(RR) eq 2 then
+      //if Dimension(RR) eq 2 then
+      if Dimension(RR) eq 1 then
         x := mRR(RR.1);
-        divx := Divisor(x); break;
+        divx := Divisor(x);
         // yeah yeah, we know a lot about the divisor of x, but
         // it may have an extra zero (or zeros!)
-        if divx notin divisorsSeen then
+        if divx notin divisorsSeen then // should really check if D is linearly equivalent to something in divisorsSeen
           Append(~xs, x);
           Append(~divisorsSeen, divx);
         end if;
