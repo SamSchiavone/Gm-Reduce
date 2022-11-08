@@ -154,7 +154,7 @@ intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits
   end if;
   if NaiveUnits cmpeq -1 then
     K := BaseRing(Curve(Parent(phi)));
-    if Degree(K) ge 5 then // if number field has deg >= 5, do naive unit reduction
+    if Degree(K) ge 50 then // if number field has deg >= 50, do naive unit reduction
       NaiveUnits := true;
     else
       NaiveUnits := false;
