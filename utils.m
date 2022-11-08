@@ -232,6 +232,10 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
 
   coefs:=Coefficients(f); // coefficients are polys in x
   mons:=Monomials(f); // monomials 1, t, t^2, ...
+  Reverse(~coefs);
+  Reverse(~mons);
+  //printf "coefs = %o\n", coefs;
+  //printf "mons = %o\n", mons;
   if #coefs eq 0 and #mons eq 0 then // f = 0
     return Sprint(0);
   end if;
@@ -258,9 +262,9 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
 
       if "+" in Sprint(a) or "-" in Sprint(a) then
         str_j *:= Sprintf("(%o)",a);
-      elif (a eq 1) and (coefs[j] ne 1) then
+      elif (a eq 1) and (not coefs[j] in [1,-1]) then
         str_j *:= "";
-      elif (a eq 1) and (coefs[j] eq 1) then
+      elif (a eq 1) and (coefs[j] in [1,-1]) then
         str_j *:= Sprintf("%o", a);
       else
         str_j *:= Sprintf("%o", a);
@@ -275,23 +279,29 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
           str_j *:= Sprintf("%o", list[i][2]);
         end if;
         if list[i][3] ne 1 then
-          str_j *:= Sprintf("^%o", list[i][3]);
+          str_j *:= Sprintf("^{%o}", list[i][3]);
         end if;
         if i ne #list then
           str_j *:= "*";
         end if;
       end for;
-      //printf "str_j = %o\n", str_j;
-      if (str_j eq "1") and (j ne 1) then
+      //printf "j = %o, str_j = %o\n", j, str_j;
+      //if (str_j eq "1") and (j ne 1) then // reverse
+      if (str_j eq "1") and (j ne #coefs) then
         str *:= "";
       else
         str *:= str_j;
       end if;
-      if j ne 1 then
-        if (str[#str-1..#str] eq "+ ") or (str[#str-1..#str] eq "- ") then
+      //if j ne 1 then // reverse
+      if j ne #coefs then
+        if #str eq 0 then
           str *:= Sprintf("%o",mons[j]); // multiply by monomial in t
+        elif (str[#str] in ["+","-"," "]) then
+          str *:= Sprintf("%o",mons[j]); // multiply by monomial in t
+          //printf "mons[j] = %o\n", mons[j];
         else
           str *:= Sprintf("*%o",mons[j]); // multiply by monomial in t
+          //printf "mons[j] = %o\n", mons[j];
         end if;
       end if;
     end if;
@@ -302,7 +312,10 @@ intrinsic PolynomialToFactoredString(f::RngUPolElt) -> MonStgElt
   Kxt<t>:=PolynomialRing(Kx);
 
   //printf "before LaTeXing: %o\n", str;
-  assert f eq eval(str);
+  test_str := str;
+  test_str := PyReplaceString(test_str, "{", "");
+  test_str := PyReplaceString(test_str, "}", "");
+  assert f eq eval(test_str);
   // format for LaTeX
   //str := ReplaceString(str, "*", " \\cdot ");
   str := PyReplaceString(str, "*", " ");
