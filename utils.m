@@ -190,6 +190,33 @@ intrinsic S3Orbit(f::RngMPolElt) -> SeqEnum
   return [ Parent(f)!S3Action(el, f) : el in Sym(3) ];
 end intrinsic;
 
+// copied from Belyi (belyi_main.m)
+intrinsic S3Action(tau::GrpPermElt, phi::FldFunFracSchElt) -> FldFunFracSchElt
+  {}
+  S := Sym(3);
+  assert Parent(tau) eq S;
+  if tau eq S!(1,2) then
+    return 1-phi;
+  elif tau eq S!(1,3) then
+    return 1/phi;
+  elif tau eq S!(2,3) then
+    return phi/(phi-1);
+  elif tau eq S!(1,2,3) then
+    return 1-1/phi;
+  elif tau eq S!(1,3,2) then
+    return 1/(1-phi);
+  else
+    return phi;
+  end if;
+end intrinsic;
+
+// copied from Belyi (belyi_main.m)
+intrinsic S3Orbit(phi::FldFunFracSchElt) -> SeqEnum 
+  {Produce the orbit of phi under the action of S3 permuting 0, 1, and oo.}
+  return [S3Action(el, phi) : el in Sym(3)];
+end intrinsic;
+
+
 intrinsic MultivariateToUnivariate(f::RngMPolElt) -> RngUPolElt
   {turns an element f in K[x,t] into an element K[x][t]}
 
