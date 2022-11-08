@@ -35,10 +35,12 @@ intrinsic SmallFunctions(Qs::SeqEnum[PlcCrvElt], d::RngIntElt) -> SeqEnum
       D := Dden-Dnum;
       // if Degree(D) ne 0 then continue; end if;
       if D eq Parent(D)!0 then continue; end if;
+      supp, mults := Support(D);
+      vprintf GmReduce: "Trying divisor with support %o and mults %o\n", supp, mults;
       RR, mRR := RiemannRochSpace(D);
-      if Dimension(RR) eq 1 then
+      if Dimension(RR) eq 2 then
         x := mRR(RR.1);
-        divx := Divisor(x);
+        divx := Divisor(x); break;
         // yeah yeah, we know a lot about the divisor of x, but
         // it may have an extra zero (or zeros!)
         if divx notin divisorsSeen then

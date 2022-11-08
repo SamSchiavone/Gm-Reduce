@@ -17,13 +17,17 @@ intrinsic model(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolElt
   Kphi := Parent(phi);
   Kx_op := Parent(x_op);
   X := Curve(Kphi);
+  ngens := Ngens(CoordinateRing(AffinePatch(X,1)));
   // JV see monomials.m
   // if Genus(X) eq 0 then
+  /*
   try
     iso_x := hom< Kx_op -> Kphi | [Kphi.1, Kphi.2]>;
   catch e;
     iso_x := hom< Kx_op -> Kphi | [Kphi.1]>;
   end try;
+  */
+  iso_x := hom< Kx_op -> Kphi | [Kphi.i : i in [1..ngens]]>;
 
   fuvFact := Factorization(fuv);
   if #fuvFact gt 1 then
@@ -150,7 +154,7 @@ intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits
   end if;
   if NaiveUnits cmpeq -1 then
     K := BaseRing(Curve(Parent(phi)));
-    if Degree(K) ge 5 then // if number field has deg >= 5, do naive unit reduction
+    if Degree(K) ge 50 then // if number field has deg >= 50, do naive unit reduction
       NaiveUnits := true;
     else
       NaiveUnits := false;

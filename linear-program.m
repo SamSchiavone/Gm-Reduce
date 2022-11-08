@@ -239,7 +239,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
   //SS:= [ pp : pp in SS | Set([Valuation(cc,pp) : cc in coefs]) notin [{0,1},{0}] ];
   if PrimesForReduction eq [] then
-    support_init:=PrimesUpTo(3,K);
+    support_init:=PrimesUpTo(10000,K);
   else
     support_init:=[ ZK!!p : p in PrimesForReduction];
   end if;
@@ -577,7 +577,9 @@ intrinsic reducemodel_units(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   coefs:=Coefficients(f);
   //assert &+[ coefs[i]*(u^mexps[i,1])*v^mexps[i,2] : i in [1..#mexps] ] eq fuv;
 
-  UK,mUK:=UnitGroup(K);
+  vprintf GmReduce: "About to compute the unit group...\n";
+  UK,mUK:=IndependentUnits(K);
+    vprintf GmReduce: "Done with computing the unit group...\n";
   k := RealField(prec);
   //UU:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) ];
   UU:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) and k!0 notin phi(K!(mUK(eps)))  ];
@@ -644,9 +646,10 @@ intrinsic reducemodel_units_naive(f::RngMPolElt: effort:=0) -> RngMPolElt, SeqEn
   end if;
   variables:=[ Parent(f).i : i in [1..#Names(Parent(f))] ];
 
+  vprintf GmReduce: "About to compute the unit group...\n";
   K:=BaseRing(Parent(f));
-  UK, mUK := UnitGroup(Integers(K));
-
+  UK, mUK := IndependentUnits(Integers(K));
+  vprintf GmReduce: "Done with computing the unit group...\n";
   UU := [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) ];
   us:= Setseq(Set(&cat[ [ u^e : e in [-exp..exp] ] : u in UU ]));
 
