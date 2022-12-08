@@ -216,8 +216,13 @@ end intrinsic;
 
 
 intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReduction:=[]) -> RngMPolElt, SeqEnum
-  {Input: a multivariate polynomial f \in K[z_1,..,z_n]; Output: minimal and integral c*f(a_1z_1,...,a_nz_n) and [a_1,...,a_n,c]
-  FixedVariable is the set of variables to fix, include n+1 if no scaling is allowed}
+  {Input: a multivariate polynomial f \in K[z_1,..,z_n];
+  Output: minimal and integral c*f(a_1z_1,...,a_nz_n) and [a_1,...,a_n,c]
+  FixedVariable is the set of variables to fix, include n+1 if no scaling is
+  allowed. PrimesForReduction is the set of primes to run the linear program on,
+  by default it's the first 10000 primes restricted to those that have a
+  non-zero valuation in a coefficient.}
+
   if BaseRing(Parent(f)) eq Rationals() then
     K:=RationalsAsNumberField();
   else
@@ -230,6 +235,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   h:=ClassNumber(K);
   Cl,mp:=ClassGroup(K);
   pm:=Inverse(mp);
+
 
   coefs_and_monomials:= [ [Coefficients(f)[i],Monomials(f)[i]] : i in [1..#Coefficients(f)] ];
   mexps := [ Exponents(m[2]) : m in coefs_and_monomials ];
@@ -317,6 +323,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   end if;
 
   //add in the fixed variable constraints
+  if IsHomogeneous(f) then FixedVariables:=[1]; end if;
   if FixedVariables ne [] then
     for i in FixedVariables do
       for j in [0..#SS-1] do
