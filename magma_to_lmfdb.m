@@ -81,7 +81,7 @@ intrinsic WriteFactoredPolynomials(read_file::MonStgElt, write_file::MonStgElt) 
     //print line;
     bool, label, f, a := LoadDataRow(line);
     if not bool then
-      continue;
+      Write(write_file, line*"|"*"\\N");
     end if;
     f_factored := DisplayPolynomial(f);
     Write(write_file, line*"|"*f_factored);
