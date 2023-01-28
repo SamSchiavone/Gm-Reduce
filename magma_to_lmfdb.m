@@ -82,9 +82,10 @@ intrinsic WriteFactoredPolynomials(read_file::MonStgElt, write_file::MonStgElt) 
     bool, label, f, a := LoadDataRow(line);
     if not bool then
       Write(write_file, line*"|"*"\\N");
+    else
+      f_factored := DisplayPolynomial(f);
+      Write(write_file, line*"|"*f_factored);
     end if;
-    f_factored := DisplayPolynomial(f);
-    Write(write_file, line*"|"*f_factored);
   end while;
   return Sprintf("Data with factored polys written to %o\n", write_file);
 end intrinsic;
