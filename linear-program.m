@@ -555,7 +555,7 @@ end intrinsic;
 
 
 
-intrinsic reducemodel_units(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
+intrinsic reducemodel_units_L1(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   {}
   K := BaseRing(Parent(f));
   if prec eq 0 then

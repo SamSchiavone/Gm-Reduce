@@ -5,4 +5,5 @@
   monomials.m
   small-functions.m
   utils.m
+  quadratic-program.m
 }
