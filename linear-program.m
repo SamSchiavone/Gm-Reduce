@@ -782,6 +782,7 @@ intrinsic padic_LPsolutions(f::RngMPolElt, pp::RngOrdIdl) -> Any
   //all of the points at which the objective function is minimal.
 end intrinsic;
 
+/*
 intrinsic reducemodel_unitsL2(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   {return the quadratic form and average vector using the coefficients}
   K := BaseRing(Parent(f));
@@ -855,7 +856,7 @@ intrinsic reducemodel_unitsL2(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
     return L2mat, L2coef, average;
   end if;
 end intrinsic;
-
+*/
 
 
 intrinsic ReducedEquations(pols::SeqEnum) -> SeqEnum

@@ -42,7 +42,7 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
   UU:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) and k!0 notin phi(K!(mUK(eps)))  ];
 
   if UU eq [] then
-    return f, [K!1: i in [1..var_size+1] ];
+    return IdentityMatrix(k,var_size+1), Matrix(k,var_size+1,1,[K!-11: i in [1..var_size+1] ]), [Rationals()!1];
   else
 
     kPol:=PolynomialRing(k,3*#UU);
