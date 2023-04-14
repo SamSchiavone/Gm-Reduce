@@ -1,4 +1,3 @@
-// TODO: incorporate PolynomialToFactoredString
 intrinsic BelyiDBToRows(s::BelyiDB : NaiveUnits := false) -> MonStgElt
   {}
   row := "";
