@@ -94,7 +94,9 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
     
     Q:=2*SymmetricMatrix(quadratic_pol);
     assert Universe(NumericalEigenvalues(Q)) eq k;
-    C:=Matrix(k,#names,1,Coefficients(linear_pol));
+
+    linear_coefs:= [ Coefficient(linear_pol, kPol.i,1) : i in [1..#names] ];
+    C:=Matrix(k,#names,1,linear_coefs);
     //assert IsPositiveDefinite(Q);
 
     variable_matrix:=Matrix(kPol,#names,1,[ kPol.i : i in [1..#names] ]);
