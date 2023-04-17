@@ -42,11 +42,7 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
   UU:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) and k!0 notin phi(K!(mUK(eps)))  ];
 
   if UU eq [] then
-<<<<<<< HEAD
-    return IdentityMatrix(k,var_size+1), Matrix(k,var_size+1,1,[K!-11: i in [1..var_size+1] ]), [Rationals()!1];
-=======
     return IdentityMatrix(k,var_size+1), Matrix(k,var_size+1,1,[k!-1: i in [1..var_size+1] ]), [Rationals()!1];
->>>>>>> aeaf07a (store before merge)
   else
 
     kPol:=PolynomialRing(k,3*#UU);
@@ -95,14 +91,17 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
 
     coefs,mons:=CoefficientsAndMonomials(pol);
     assert pol eq &+[ coefs[i]*mons[i] : i in [1..#coefs] ];
+
     quadratic_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 2 ];
     linear_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 1 ];
     
+
     Q:=2*SymmetricMatrix(quadratic_pol);
     assert Universe(NumericalEigenvalues(Q)) eq k;
 
     linear_coefs:= [ Coefficient(linear_pol, kPol.i,1) : i in [1..#names] ];
     C:=Matrix(k,#names,1,linear_coefs);
+
     //assert IsPositiveDefinite(Q);
 
     variable_matrix:=Matrix(kPol,#names,1,[ kPol.i : i in [1..#names] ]);

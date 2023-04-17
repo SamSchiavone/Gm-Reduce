@@ -251,7 +251,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   end if;
   SS:=[];
   for pp in support_init do
-    cvals := [ Valuation(c,pp) : c in coefs  ];
+    cvals := [ Valuation(c,pp) : c in coefs  ]; 
     if not((Set(cvals) in [{0,1},{0}]) and (#[ a : a in cvals | a eq 1 ] in [0,1])) then
       Append(~SS,pp);
     end if;
@@ -359,7 +359,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
   guv:=Evaluate(f,[(BaseRing(Parent(f))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(f))!scaling_factors[var_size+1];
 
-  return guv, [K!el : el in scaling_factors];
+  return guv, [BaseRing(Parent(f))!el : el in scaling_factors];
 end intrinsic;
 
 
