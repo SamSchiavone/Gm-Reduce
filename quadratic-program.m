@@ -89,8 +89,8 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
 
     coefs,mons:=CoefficientsAndMonomials(pol);
     assert pol eq &+[ coefs[i]*mons[i] : i in [1..#coefs] ];
-    quadratic_pol:= &+[ coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 2 ];
-    linear_pol:= &+[ coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 1 ];
+    quadratic_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 2 ];
+    linear_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 1 ];
     
     Q:=2*SymmetricMatrix(quadratic_pol);
     assert Universe(NumericalEigenvalues(Q)) eq k;
