@@ -1,7 +1,7 @@
 /*
   Usage: run the following command in ~/github/BelyiDB, or wherever filenames.txt is located
 
-  parallel -j 16 --joblog joblog --eta -a filenames.txt magma -b filename:={} ~/github/Gm-Reduce/script.m  > output.txt
+parallel -j 16 --joblog joblog --eta -a filenames.txt magma -b filename:={} ~/github/Gm-Reduce/script.m  > output.txt
  */
 
 AttachSpec("code/spec_database");
