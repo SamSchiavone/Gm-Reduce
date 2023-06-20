@@ -136,7 +136,7 @@ intrinsic AllReducedModels(phi::FldFunFracSchElt : effort := 0, degree := 0, Nai
   reduced_models := [];
   for tup in ts_xs_Fs_sorted do
     t, x, F := Explode(tup);
-    fred,scalars := ReducedModel(t, x : NaiveUnits := NaiveUnits);
+    fred, scalars := ReducedModel(t, x : NaiveUnits := NaiveUnits);
     //vprintf GmReduce: "t = %o,\nx = %o,\nreduced model = %o\n\n", t, x, fred;
     Append(~reduced_models, <#Sprint(fred), t, x, fred, scalars>);
   end for;
@@ -162,7 +162,8 @@ intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits
   end if;
   list := AllReducedModels(phi : effort:=effort, degree:=degree, NaiveUnits := NaiveUnits);
   f := list[1][1];
-  return f, BaseRing(Parent(f))!1/list[1][2][1];
+  //return f, BaseRing(Parent(f))!1/list[1][2][1];
+  return f, BaseRing(Parent(f))!1/list[1][2][1], list[1][2];
 end intrinsic;
 
 intrinsic PlaneModel(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolElt

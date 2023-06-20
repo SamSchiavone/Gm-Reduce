@@ -698,7 +698,7 @@ intrinsic reducemodel_units_naive(f::RngMPolElt: effort:=0) -> RngMPolElt, SeqEn
     printf "trying %o tuples of units with random exponents up to %o\n", no_tuples, max_exp;
     B:=[<#Sprint(f), [K!1,K!1,K!1]>];
     ran :=[ [ [ Random(Integers(),max_exp) : i in [1..#UU] ] : j in [1..3] ] : k in [1..no_tuples] ];
-    unit_tuples:= [ [ &*[ UU[i]^elt[i] : i in [1..#UU] ] : elt in list ] : list in ran ];
+    unit_tuples:= [ [ &*[K | UU[i]^elt[i] : i in [1..#UU] ] : elt in list ] : list in ran ];
     //uus:= [ [ &*[ UU[i]^elt[i] : i in [1..#UU]] : elt in list ]: list in ran ];
 
     for tup in unit_tuples do

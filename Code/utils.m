@@ -1,4 +1,5 @@
 // TODO: just import from Belyi; Gm-Reduce should output f and scalar a
+// Take scalar as input, too!
 intrinsic BelyiMapSanityCheck(sigma::SeqEnum[GrpPermElt], f::RngMPolElt : lax := false) -> Any
   {Does a basic check to see if the candidate is plausible. If lax is set to true, then work in the category of lax Belyi maps.}
   // make curve and function field to compute divisors
