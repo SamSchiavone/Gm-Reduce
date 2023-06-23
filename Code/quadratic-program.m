@@ -3,7 +3,7 @@
 
 intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   {Given a multivariate polynomial f over number field K, we wish to scale by units to the reduce the 
-  size of the equation. To find which units to scale by this intrinsic creates the obective function,
+  size of the equation. To find which units to scale by, this intrinsic creates the obective function,
   which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The function returns Q and C. Note Q 
   not necessarily positive definite, but it will be positive semi definite because it is symmetric.}
   K := BaseRing(Parent(f));
@@ -153,7 +153,7 @@ reduce the size of the coefficients of f.}
   eps_soln:= [ K!&*[ UU[i]^soln_rounded[k*#UU+i] : i in [1..#UU] ] : k in [0..var_size] ];
   assert #eps_soln eq var_size + 1;
   guv:=Evaluate(f,[eps_soln[i]*Parent(f).i : i in [1..var_size]])*eps_soln[var_size+1];
-  return guv, eps_soln;
+  return guv, eps_soln, soln;
 
 end intrinsic;
  
@@ -171,6 +171,57 @@ intrinsic reducemodel_units(f::RngMPolElt : prec:=0, norm:= "L2") -> RngMPolElt,
 
 end intrinsic;
 
+
+
+intrinsic Norm(A::ModMatRngElt) -> FldReElt 
+  {}
+  return Sqrt(RealField(5)!(&+[ a^2 : a in Eltseq(A) ]));
+end intrinsic;
+
+intrinsic Norm(A::AlgMatElt) -> FldReElt 
+  {}
+  return Sqrt(RealField(5)!(&+[ a^2 : a in Eltseq(A) ]));
+end intrinsic;
+
+
+intrinsic mu(tt::ModMatRngElt, z::ModMatRngElt) -> FldReElt
+  {}
+  
+  tt:=ChangeRing(tt,RealField(5));
+  z:=ChangeRing(z,RealField(5));
+  return Abs(Round(Eltseq(Transpose(tt)*z)[1]) - Eltseq(Transpose(tt)*z)[1]);
+end intrinsic;
+
+
+/*
+intrinsic SolveIntegerQuadraticProgram(Q::., C::.) -> Any 
+  {}
+
+  B:=Transpose(Cholesky(Q));
+  assert ChangeRing(Q,RealField(5)) eq  ChangeRing(Transpose(B)*B,RealField(5));
+  Binv:=Inverse(B);
+  L:=LatticeWithBasis(Binv);
+  //basis of L is rows of Binv.
+  Lop,TT:=BasisReduction(L);
+  Binvop:=BasisMatrix(Lop);
+  //Basis(Lop) eq T*Basis(L), or if Binvop is matrix with rows equal to basis of Lop, then Binvop:=TT*Binv
+  assert ChangeRing(Binvop,RealField(5)) eq ChangeRing(TT*Binv,RealField(5));
+  T:=Transpose(TT);
+
+  zz:=Matrix(soln);
+
+  ColumnsT:=[ ColumnSubmatrix(T,i,1) : i in [1..#Rows(Transpose(T)) ] ];
+  Qs:=[ t*Transpose(t) : t in ColumnsT ];
+
+  LambdaQs:=[ 2*Norm(ChangeRing(Transpose(t),BaseRing(Parent(Binv)))*Binv) : t in ColumnsT ];
+
+  Q0:=&+[ LambdaQs[i]^2*Qs[i] : i in [1..#Qs] ];
+
+  muQ0:= Sqrt( &+[ LambdaQs[i]^2*(mu(ColumnsT[i],zz)) : i in [1..#ColumnsT] ]);
+
+
+end intrinsic
+*/
 
 
 
