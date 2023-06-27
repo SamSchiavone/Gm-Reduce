@@ -3,7 +3,7 @@
 
 intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   {Given a multivariate polynomial f over number field K, we wish to scale by units to the reduce the 
-  size of the equation. To find which units to scale by this intrinsic creates the obective function,
+  size of the equation. To find which units to scale by, this intrinsic creates the obective function,
   which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The function returns Q and C. Note Q 
   not necessarily positive definite, but it will be positive semi definite because it is symmetric.}
   K := BaseRing(Parent(f));
@@ -51,8 +51,6 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
         cat [ Sprintf("c%o",i) : i in [1..#UU] ];
     AssignNames(~kPol,names);
 
-
- 
     Vees:=[];
     constants := [];
     abs_coef := [];
@@ -89,6 +87,19 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
       
     end for;
 
+    return pol - ConstantTerm(pol), UU;
+  end if;
+end intrinsic;
+
+
+intrinsic ObjectiveFunctionToMatrices(obj::RngMPolElt) -> AlgMatElt,AlgMatElt
+    {}
+
+    k:=BaseRing(Parent(obj));
+    kPol:=Parent(obj);
+    names:=Names(kPol);
+
+    pol:=obj;
     coefs,mons:=CoefficientsAndMonomials(pol);
     assert pol eq &+[ coefs[i]*mons[i] : i in [1..#coefs] ];
 
@@ -97,7 +108,7 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
     
 
     Q:=2*SymmetricMatrix(quadratic_pol);
-    assert Universe(NumericalEigenvalues(Q)) eq k;
+    //assert Universe(NumericalEigenvalues(Q)) eq k;
 
     linear_coefs:= [ Coefficient(linear_pol, kPol.i,1) : i in [1..#names] ];
     C:=Matrix(k,#names,1,linear_coefs);
@@ -106,23 +117,165 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
 
     variable_matrix:=Matrix(kPol,#names,1,[ kPol.i : i in [1..#names] ]);
     
-    obj:=1/2*Transpose(variable_matrix)*ChangeRing(Q,kPol)*variable_matrix + ChangeRing(Transpose(C),kPol)*variable_matrix; 
-    obj:=obj[1,1];
-    assert obj eq pol - ConstantTerm(pol);
+    newobj:=1/2*Transpose(variable_matrix)*ChangeRing(Q,kPol)*variable_matrix + ChangeRing(Transpose(C),kPol)*variable_matrix; 
+    newobj:=newobj[1,1];
+    assert newobj eq pol - ConstantTerm(pol);
 
-    return Q,C,UU;
-  end if;
+    return Q,C;
 
 end intrinsic;
 
 
-intrinsic SolveQuadraticProgramUnconstrained(H::AlgMatElt,B::ModMatFldElt) -> ModMatFldElt
+intrinsic SolveQuadraticProgramReals(Q::AlgMatElt,C::ModMatFldElt : prec:=0) -> ModMatFldElt
+  {Given a symmetix matrix Q and a vector C, find a minimum of 1/2x^TQx + C^Tx, 
+   which is given by Qx=-C}
+ 
+  
+  if IsExact(BaseRing(Parent(Q))) then 
+    if prec eq 0 then 
+      prec:=20;
+    end if;
+    k:=RealField(prec);
+  else 
+    k:=BaseRing(Parent(Q));
+  end if;
+
+  V,N:=NumericalSolution(ChangeRing(Q,k),ChangeRing(Transpose(-C),k));
+  return V,N;
+end intrinsic;
+
+intrinsic SolveQuadraticProgramReals(obj::RngMPolElt : prec:=0) -> ModMatFldElt
+  {Given a symmetix matrix Q and a vector C, find a minimum of 1/2x^TQx + C^Tx, 
+   which is given by Qx=-C}
+  Q,C:=ObjectiveFunctionToMatrices(obj);
+  return SolveQuadraticProgramReals(Q,C : prec:=prec);
+end intrinsic; 
+
+/*intrinsic SolveQuadraticProgramReals(Q::AlgMatElt,C::AlgMatElt : prec:=0) -> ModMatFldElt
+  {Given a symmetix matrix Q and a vector C, find a minimum of 1/2x^TQx + C^Tx, 
+   which is given by Qx=-C}
+  
+  return SolveQuadraticProgramReals(Q,C : prec:=prec);
+end intrinsic; */
+
+
+intrinsic Norm(A::ModMatRngElt) -> FldReElt 
+  {}
+  return Sqrt(RealField(5)!(&+[ a^2 : a in Eltseq(A) ]));
+end intrinsic;
+
+intrinsic Norm(A::AlgMatElt) -> FldReElt 
+  {}
+  return Sqrt(RealField(5)!(&+[ a^2 : a in Eltseq(A) ]));
+end intrinsic;
+
+
+intrinsic mu(tt::ModMatRngElt, z::ModMatRngElt) -> FldReElt
+  {}
+  
+  tt:=ChangeRing(tt,RealField(5));
+  z:=ChangeRing(z,RealField(5));
+  return Abs(Round(Eltseq(Transpose(tt)*z)[1]) - Eltseq(Transpose(tt)*z)[1]);
+end intrinsic;
+
+
+
+intrinsic SolveQuadraticProgramIntegers(Q::AlgMatElt,C::ModMatFldElt : prec:=0) -> Any 
+  {}
+
+  if IsExact(BaseRing(Parent(Q))) then 
+    if prec eq 0 then 
+      prec:=20;
+    end if;
+    k:=RealField(prec);
+  else 
+    k:=BaseRing(Parent(Q));
+  end if;
+
+  Q:=ChangeRing(Q,k);
+  C:=ChangeRing(C,k);
+ 
+  V,N:=SolveQuadraticProgramReals(Q,C : prec:=prec);
+
+  if IsPositiveDefinite(Q) then 
+    B:=Transpose(Cholesky(Q));
+  else 
+    diag,F:=OrthogonalizeGram(Q);
+    assert forall(e){ a ge 0 : a in Diagonal(diag) };
+    sqrt:= DiagonalMatrix(k,[ Sqrt(a) : a in Diagonal(diag) ]);
+    B:=Transpose(Inverse(F)*sqrt);
+  end if;
+
+  assert ChangeRing(Q,RealField(3)) eq  ChangeRing(Transpose(B)*B,RealField(3));
+  Binv:=Inverse(B);
+  L:=LatticeWithBasis(Binv);
+  //basis of L is rows of Binv.
+  Lop,TT:=BasisReduction(L);
+  Binvop:=BasisMatrix(Lop);
+  //Basis(Lop) eq T*Basis(L), or if Binvop is matrix with rows equal to basis of Lop, then Binvop:=TT*Binv
+  assert ChangeRing(Binvop,RealField(3)) eq ChangeRing(TT*Binv,RealField(3));
+  T:=Transpose(TT);
+
+  zz:=Transpose(Matrix([V]));
+  op_init:=ChangeRing(Transpose(T),BaseRing(zz))*zz;
+  op_init:= Transpose(Matrix([[ Round(a) : a in Eltseq(op_init) ]]));
+  op:=Transpose(T)^-1*op_init;
+
+  return Eltseq(op);
+
+  //else 
+
+    /*Vrat:=[ BestApproximation(v,1000) : v in Eltseq(V) ];
+    N1:=[ n/Eltseq(N)[1] : n in Eltseq(N) ];
+    Nrat:=[ BestApproximation(n,1000) : n in Eltseq(N1) ];*/
+
+    /*Nlattice:=Lattice(N);
+    Nbasis:=Rows(BasisMatrix(Nlattice));
+    vinit:=Rows(V)[1];
+
+    eps:=0.1;
+    bd:=10;
+
+    all_vectors:=[vinit];
+    for V in Nbasis do
+      //for all s in [ m*eps : m in [-bd/eps..bd/eps] ];
+      head:=[ w+s*V : w in all_vectors, s in [-bd/eps..bd/eps] ];
+      all_vectors:=all_vectors cat head;
+    end for;
+    all_vectors_rounded:=[ [ Round(a) : a in Eltseq(VV) ] : VV in all_vectors ];
+
+    obj:=QuadraticForm(Q);
+    obj:= obj + &+[ Parent(obj).i*Eltseq(C)[i] : i in [1..#Eltseq(C)] ];
+    
+    eval_obj:= [ <Evaluate(obj,P), P> : P in all_vectors_rounded ];
+    integersoln_sorted:=Sort(eval_obj);
+
+    return integersoln_sorted[1,2];
+
+  end if;*/
+
+
+
+  /*ColumnsT:=[ ColumnSubmatrix(T,i,1) : i in [1..#Rows(Transpose(T)) ] ];
+  Qs:=[ t*Transpose(t) : t in ColumnsT ];
+  LambdaQs:=[ 2*Norm(ChangeRing(Transpose(t),BaseRing(Parent(Binv)))*Binv) : t in ColumnsT ];
+  Q0:=&+[ LambdaQs[i]^2*Qs[i] : i in [1..#Qs] ];
+  muQ0:= Sqrt( &+[ LambdaQs[i]^2*(mu(ColumnsT[i],zz)) : i in [1..#ColumnsT] ]);*/
+  
+
+end intrinsic;
+
+
+
+
+
+/*intrinsic SolveQuadraticProgramUnconstrained(obj::RngMPolElt) -> ModMatFldElt
   {Given a symmetix matrix Q and a vector B, find a numerical solution to Hx = B where
    H and B are over the reals. The second return value is the nullspace}
 
-  V,N:=NumericalSolution(H,Transpose(B));
-  return V,N;
-end intrinsic;
+  Q,C:=ObjectiveFunctionToMatrices(obj);
+  return SolveQuadraticProgramUnconstrained(Q,C);
+end intrinsic;*/
 
 
 
@@ -145,15 +298,15 @@ reduce the size of the coefficients of f.}
   end if;
 
   K:=BaseRing(Parent(f));
-  Q,C,UU:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
-  soln,N:=SolveQuadraticProgramUnconstrained(Q,-C);
+  obj,UU:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
+  Q,C:=ObjectiveFunctionToMatrices(obj);
+  //soln,N:=SolveQuadraticProgramUnconstrained(Q,-C);
+  soln:=SolveQuadraticProgramIntegers(Q,C);
 
-  soln_rounded:=[ Round(a) : a in Eltseq(soln) ];
-
-  eps_soln:= [ K!&*[ UU[i]^soln_rounded[k*#UU+i] : i in [1..#UU] ] : k in [0..var_size] ];
+  eps_soln:= [ K!&*[ UU[i]^soln[k*#UU+i] : i in [1..#UU] ] : k in [0..var_size] ];
   assert #eps_soln eq var_size + 1;
   guv:=Evaluate(f,[eps_soln[i]*Parent(f).i : i in [1..var_size]])*eps_soln[var_size+1];
-  return guv, eps_soln;
+  return guv, eps_soln, soln;
 
 end intrinsic;
  
