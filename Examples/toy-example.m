@@ -1,4 +1,4 @@
-AttachSpec("spec");
+
 R<z>:=PolynomialRing(Rationals());
 K<nu> := NumberField(z^2-2);
 R<t,x> := PolynomialRing(K,2);
