@@ -4,12 +4,12 @@
 intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
   {Given a multivariate polynomial f over number field K, we wish to scale by units to the reduce the 
   size of the equation. To find which units to scale by, this intrinsic creates the obective function,
-  which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The function returns Q and C. Note Q 
+  which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The intrinsic returns the quadratic function. Note Q 
   not necessarily positive definite, but it will be positive semi definite because it is symmetric.}
   K := BaseRing(Parent(f));
   if prec eq 0 then
     //wild guess imprecise
-    prec:=Floor(Sqrt(Degree(K)))*100;
+    prec:=Floor(Sqrt(Degree(K)))*10;
   end if;
 
   //u := Parent(fuv).1;
@@ -126,6 +126,18 @@ intrinsic ObjectiveFunctionToMatrices(obj::RngMPolElt) -> AlgMatElt,AlgMatElt
 end intrinsic;
 
 
+
+intrinsic UnitsQuadraticObjectiveMatrices(f::RngMPolElt : prec:=0) -> RngMPolElt, SeqEnum
+  {Given a multivariate polynomial f over number field K, we wish to scale by units to the reduce the 
+  size of the equation. To find which units to scale by, this intrinsic creates the obective function,
+  which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The intrinsic returns Q and C. Note Q 
+  not necessarily positive definite, but it will be positive semi definite because it is symmetric.}
+  obj:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
+  Q,C:=ObjectiveFunctionToMatrices(obj);
+  return Q,C;
+end intrinsic;
+
+
 intrinsic SolveQuadraticProgramReals(Q::AlgMatElt,C::ModMatFldElt : prec:=0) -> ModMatFldElt
   {Given a symmetix matrix Q and a vector C, find a minimum of 1/2x^TQx + C^Tx, 
    which is given by Qx=-C}
@@ -177,6 +189,26 @@ intrinsic mu(tt::ModMatRngElt, z::ModMatRngElt) -> FldReElt
   z:=ChangeRing(z,RealField(5));
   return Abs(Round(Eltseq(Transpose(tt)*z)[1]) - Eltseq(Transpose(tt)*z)[1]);
 end intrinsic;
+
+
+
+/*intrinsic SubspaceToLinearDefiningEquations(N::.,V::) -> SeqEnum,SeqEnum
+  {xN+V is a linear subset of R^n: return it is a defining equations and linear terms}
+  k:=BaseRing(N);
+
+  echN:=EchelonForm(N);
+  echNcolumns:=Rows(Transpose(echN));
+  echNspan:=sub< Parent(echNcolumns[1]) | echNcolumns >;
+  standardbasis:=Basis(VectorSpace(BaseRing(echNspan),Dimension(echNspan)));
+
+  nonbasiscolumns:= [ A : A in echNcolumns | A notin standardbasis ];
+  minus1:=-IdentityMatrix(BaseRing(echNcolumns[1]),#nonbasiscolumns);
+  minus1rows:=Rows(minus1);
+  definingequations:= [ Eltseq(nonbasiscolumns[i]) cat Eltseq(minus1rows[i]) : i in [1..#nonbasiscolumns]  ];
+  linearterms := [ &+[ b[j]*Eltseq(V)[j] : j in [1..#Eltseq(V)] ] : b in definingequations ];
+  return definingequations,linearterms;
+end intrinsic;*/
+
 
 
 

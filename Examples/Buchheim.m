@@ -54,4 +54,45 @@ Q:=2*SymmetricMatrix(qquad);
   R:=Inverse(F)*sqrt;
   assert ChangeRing(Q,RealField(2)) eq ChangeRing(R*Transpose(R),RealField(2));
 
+//Let's try and use L1 program to solve when it's semidefinite:
+
+k:=RealField(5);
+L := LPProcess(k, 2);
+obj:=Matrix(k,1,2,[0,0]);
+SetObjectiveFunction(L, obj);
+
+
+//y=x-1.2
+const:=-1.2;
+eps:=0.2;
+bound:=100;
+AddConstraints(L,Matrix(k,[[-1,1]]), Matrix(k,[[const+eps]]) : Rel:="le");
+AddConstraints(L,Matrix(k,[[-1,1]]), Matrix(k,[[const-eps]]) : Rel:="ge");
+AddConstraints(L,Matrix(k,[[1,0]]), Matrix(k,[[bound]]) : Rel:="le");
+AddConstraints(L,Matrix(k,[[-1,0]]), Matrix(k,[[bound]]) : Rel:="le");
+AddConstraints(L,Matrix(k,[[0,1]]), Matrix(k,[[bound]]) : Rel:="le");
+AddConstraints(L,Matrix(k,[[0,-1]]), Matrix(k,[[bound]]) : Rel:="le");
+
+
+SetIntegerSolutionVariables(L,[1,2], true);
+
+Solution(L);
+
+SetLowerBound(L, 1, k!-100);
+SetLowerBound(L, 2, k!-100);
+
+Solution(L);
+
+
+R<t1,x1,x2>:=PolynomialRing(Rationals(),3);
+b1:=[2,-1];
+vars:=Transpose(Matrix(R,[[x1,x2]]));
+c1:=Transpose(t1*Matrix(R,[b1]));
+
+pols:=vars-c1;
+eqns:=Eltseq(pols);
+idl:=ideal< R | eqns >;
+
+
+
   
