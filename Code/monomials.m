@@ -195,9 +195,10 @@ intrinsic SortSmallFunctions(phi::FldFunFracSchElt, xs::SeqEnum : Prime := 0, Pr
     //print "computing model over finite field";
     F_res_FF := PlaneModel(phi_FF, x_op_FF);
     // S3 Orbit
-    F_orb := S3Orbit(F_res_FF);
+    F_orb := S3Orbit(F_res_FF, 1);
     phi_orb := S3Orbit(phi); // import from Belyi
     for i := 1 to #F_orb do
+       // TODO: double check that these match, i.e., that the S3 orbits are given in the same order
         t := phi_orb[i];
         F := F_orb[i];
         mons_FF := Monomials(F);

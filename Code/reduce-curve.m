@@ -83,8 +83,8 @@ intrinsic ReducedModelsS3Orbit(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) ->
     phis := S3Orbit(phi);
     return [* ReducedModel(el,x_op) : el in phis *];
   */
-  f := ReducedModel(phi, x_op);
-  return S3Orbit(f);
+  f, scalars := ReducedModel(phi, x_op);
+  return S3Orbit(f, 1/scalars[1]);
 end intrinsic;
 
 intrinsic ReducedModelS3Orbit(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolElt

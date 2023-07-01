@@ -150,15 +150,13 @@ intrinsic ComputeThirdRamificationValue(f::RngMPolElt) -> Any
   end if;
 end intrinsic;
 
-// TODO: have this take scalar as input, too
-// FIXME: seems not to preserve 0, a, oo...
 intrinsic S3ActionPlane(tau::GrpPermElt, f::RngMPolElt, a::RngElt) -> RngMPolElt
   {}
 
   S := Sym(3);
   assert Parent(tau) eq S;
   R<t,x> := Parent(f);
-  // WARNING: the variable t in the polynomial ring undergoes the INVERSE transformation. This is because we're basically setting, e.g., u = 1/(1-t), and then solving for t.
+  // WARNING: the variable t in the polynomial ring undergoes the INVERSE transformation. This is because we're basically setting, e.g., u = 1/(1-t), and then solving for t. This is only noticeable for the 3-cycles since transpositions are self-inverse
   if tau eq S!(1,2) then
     //return 1-phi;
     t_ev := a-t;
@@ -168,7 +166,7 @@ intrinsic S3ActionPlane(tau::GrpPermElt, f::RngMPolElt, a::RngElt) -> RngMPolElt
   elif tau eq S!(2,3) then
     //return 1 - 1/(1-phi);
     t_ev := a - a^2/(a-t);
-  elif tau eq S!(1,2,3) then
+  elif tau eq S!(1,2,3) then // these are the tricky ones that are inverse
     //return 1/(1-phi);
     t_ev := a - a^2/t;
   elif tau eq S!(1,3,2) then
@@ -180,9 +178,9 @@ intrinsic S3ActionPlane(tau::GrpPermElt, f::RngMPolElt, a::RngElt) -> RngMPolElt
   return Numerator(Evaluate(f, [t_ev,x])); // need to re-integralize at the end?
 end intrinsic;
 
-intrinsic S3Orbit(f::RngMPolElt) -> RngMPolElt
+intrinsic S3Orbit(f::RngMPolElt, a::RngElt) -> RngMPolElt
   {}
-  return [S3Action(tau, f) : tau in Sym(3)];
+  return [S3ActionPlane(tau, f, a) : tau in Sym(3)];
 end intrinsic;
 
 // copied from Belyi (belyi_main.m)
