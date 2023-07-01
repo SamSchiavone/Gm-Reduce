@@ -150,21 +150,15 @@ intrinsic ComputeThirdRamificationValue(f::RngMPolElt) -> Any
   end if;
 end intrinsic;
 
-intrinsic S3Action(tau::GrpPermElt, f::RngMPolElt) -> RngMPolElt
+// TODO: have this take scalar as input, too
+// FIXME: seems not to preserve 0, a, oo...
+intrinsic S3ActionPlane(tau::GrpPermElt, f::RngMPolElt, a::RngElt) -> RngMPolElt
   {}
+
   S := Sym(3);
   assert Parent(tau) eq S;
-
   R<t,x> := Parent(f);
-  bool, a := ComputeThirdRamificationValue(f);
-  if bool then
-    L := Parent(a);
-    assert L eq BaseRing(Parent(f));
-  else
-    a := 1;
-  end if;
-  //RL<t,x> := ChangeRing(R,L);
-  // TODO: fix this when only ramified above 0, oo
+  // WARNING: the variable t in the polynomial ring undergoes the INVERSE transformation. This is because we're basically setting, e.g., u = 1/(1-t), and then solving for t.
   if tau eq S!(1,2) then
     //return 1-phi;
     t_ev := a-t;
@@ -172,13 +166,13 @@ intrinsic S3Action(tau::GrpPermElt, f::RngMPolElt) -> RngMPolElt
     //return 1/phi;
     t_ev := a^2/t;
   elif tau eq S!(2,3) then
-    //return phi/(phi-1);
+    //return 1 - 1/(1-phi);
     t_ev := a - a^2/(a-t);
-  elif tau eq S!(1,2,3) then // are these two backwards?
-    //return 1-1/phi;
-    t_ev := a - a^2/t;
-  elif tau eq S!(1,3,2) then // are these two backwards? or right- vs left action?
+  elif tau eq S!(1,2,3) then
     //return 1/(1-phi);
+    t_ev := a - a^2/t;
+  elif tau eq S!(1,3,2) then
+    //return 1-1/phi;
     t_ev := a^2/(a-t);
   else
     t_ev := t;
@@ -186,9 +180,9 @@ intrinsic S3Action(tau::GrpPermElt, f::RngMPolElt) -> RngMPolElt
   return Numerator(Evaluate(f, [t_ev,x])); // need to re-integralize at the end?
 end intrinsic;
 
-intrinsic S3Orbit(f::RngMPolElt) -> SeqEnum
+intrinsic S3Orbit(f::RngMPolElt) -> RngMPolElt
   {}
-  return [ Parent(f)!S3Action(el, f) : el in Sym(3) ];
+  return [S3Action(tau, f) : tau in Sym(3)];
 end intrinsic;
 
 // copied from Belyi (belyi_main.m)
@@ -201,8 +195,8 @@ intrinsic S3Action(tau::GrpPermElt, phi::FldFunFracSchElt) -> FldFunFracSchElt
   elif tau eq S!(1,3) then
     return 1/phi;
   elif tau eq S!(2,3) then
-    return phi/(phi-1);
-  elif tau eq S!(1,2,3) then
+    return 1 - 1/(1-phi);
+  elif tau eq S!(1,2,3) then // swapped these compared to belyi_main because they seemed to be backwards
     return 1-1/phi;
   elif tau eq S!(1,3,2) then
     return 1/(1-phi);
@@ -211,12 +205,19 @@ intrinsic S3Action(tau::GrpPermElt, phi::FldFunFracSchElt) -> FldFunFracSchElt
   end if;
 end intrinsic;
 
+// TODO: change this
+/*
+intrinsic S3Orbit(f::RngMPolElt) -> SeqEnum
+  {}
+  return [ Parent(f)!S3ActionPlane(el, f, phi) : el in Sym(3) ];
+end intrinsic;
+*/
+
 // copied from Belyi (belyi_main.m)
 intrinsic S3Orbit(phi::FldFunFracSchElt) -> SeqEnum 
   {Produce the orbit of phi under the action of S3 permuting 0, 1, and oo.}
   return [S3Action(el, phi) : el in Sym(3)];
 end intrinsic;
-
 
 intrinsic MultivariateToUnivariate(f::RngMPolElt) -> RngUPolElt
   {turns an element f in K[x,t] into an element K[x][t]}

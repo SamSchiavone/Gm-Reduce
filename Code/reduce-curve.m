@@ -54,7 +54,7 @@ intrinsic ReducedEquation(f::RngMPolElt : NaiveUnits := false) -> RngMPolElt
   {Given a multivariate polynomial return its reduction}
   t0:=Cputime();
   vprint GmReduce: "Starting p-adic reduction";
-  f_padic, scalars1  := reducemodel_padic(f);
+  f_padic, scalars1 := reducemodel_padic(f);
   t1:=Cputime();
   vprintf GmReduce: "Done with p-adic, it took %o seconds\n", t1-t0;
 
