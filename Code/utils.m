@@ -197,9 +197,9 @@ intrinsic S3Action(tau::GrpPermElt, phi::FldFunFracSchElt) -> FldFunFracSchElt
   elif tau eq S!(2,3) then
     return 1 - 1/(1-phi);
   elif tau eq S!(1,2,3) then // swapped these compared to belyi_main because they seemed to be backwards
-    return 1-1/phi;
-  elif tau eq S!(1,3,2) then
     return 1/(1-phi);
+  elif tau eq S!(1,3,2) then
+    return 1-1/phi;
   else
     return phi;
   end if;
