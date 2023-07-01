@@ -1,4 +1,4 @@
-AttachSpec("spec");
+
 R<z>:=PolynomialRing(Rationals());
 K<nu> := NumberField(z^2-2);
 R<t,x> := PolynomialRing(K,2);
@@ -40,3 +40,9 @@ f_naive := reducemodel_units_naive(f);
 #Sprint(f);
 #Sprint(f_red);
 #Sprint(f_naive);
+
+
+
+Q,C:=UnitsQuadraticObjectiveMatrices(f);
+V,N:=SolveQuadraticProgramReals(Q,C);
+
