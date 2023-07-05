@@ -9,7 +9,7 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
   K := BaseRing(Parent(f));
   if prec eq 0 then
     //wild guess imprecise
-    prec:=Floor(Sqrt(Degree(K)))*10;
+    prec:=Floor(Sqrt(Degree(K)))*20;
   end if;
 
   //u := Parent(fuv).1;
@@ -42,7 +42,8 @@ intrinsic UnitsQuadraticObjectiveFunction(f::RngMPolElt : prec:=0) -> RngMPolElt
   UU:= [ K!(mUK(eps)) : eps in Generators(UK) | not(IsFinite(eps)) and k!0 notin phi(K!(mUK(eps)))  ];
 
   if UU eq [] then
-    return IdentityMatrix(k,var_size+1), Matrix(k,var_size+1,1,[k!-1: i in [1..var_size+1] ]), [Rationals()!1];
+    //return IdentityMatrix(k,var_size+1), Matrix(k,var_size+1,1,[k!-1: i in [1..var_size+1] ]), [Rationals()!1];
+    return PolynomialRing(k)!0, [];  
   else
 
     kPol:=PolynomialRing(k,3*#UU);
@@ -95,33 +96,36 @@ end intrinsic;
 intrinsic ObjectiveFunctionToMatrices(obj::RngMPolElt) -> AlgMatElt,AlgMatElt
     {}
 
-    k:=BaseRing(Parent(obj));
-    kPol:=Parent(obj);
-    names:=Names(kPol);
+  k:=BaseRing(Parent(obj));
+  kPol:=Parent(obj);
+  names:=Names(kPol);
 
-    pol:=obj;
-    coefs,mons:=CoefficientsAndMonomials(pol);
-    assert pol eq &+[ coefs[i]*mons[i] : i in [1..#coefs] ];
 
-    quadratic_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 2 ];
-    linear_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 1 ];
-    
 
-    Q:=2*SymmetricMatrix(quadratic_pol);
-    //assert Universe(NumericalEigenvalues(Q)) eq k;
+  pol:=obj;
+  coefs,mons:=CoefficientsAndMonomials(pol);
+  assert pol eq &+[ coefs[i]*mons[i] : i in [1..#coefs] ];
 
-    linear_coefs:= [ Coefficient(linear_pol, kPol.i,1) : i in [1..#names] ];
-    C:=Matrix(k,#names,1,linear_coefs);
+  quadratic_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 2 ];
+  linear_pol := &+[ Parent(mons[1]) | coefs[i]*mons[i] : i in [1..#coefs] | Degree(mons[i]) eq 1 ];
+  
 
-    //assert IsPositiveDefinite(Q);
+  Q:=2*SymmetricMatrix(quadratic_pol);
+  //assert Universe(NumericalEigenvalues(Q)) eq k;
 
-    variable_matrix:=Matrix(kPol,#names,1,[ kPol.i : i in [1..#names] ]);
-    
-    newobj:=1/2*Transpose(variable_matrix)*ChangeRing(Q,kPol)*variable_matrix + ChangeRing(Transpose(C),kPol)*variable_matrix; 
-    newobj:=newobj[1,1];
-    assert newobj eq pol - ConstantTerm(pol);
+  linear_coefs:= [ Coefficient(linear_pol, kPol.i,1) : i in [1..#names] ];
+  C:=Matrix(k,#names,1,linear_coefs);
 
-    return Q,C;
+  //assert IsPositiveDefinite(Q);
+
+  variable_matrix:=Matrix(kPol,#names,1,[ kPol.i : i in [1..#names] ]);
+  
+  newobj:=1/2*Transpose(variable_matrix)*ChangeRing(Q,kPol)*variable_matrix + ChangeRing(Transpose(C),kPol)*variable_matrix; 
+  newobj:=newobj[1,1];
+  assert newobj eq pol - ConstantTerm(pol);
+
+  return Q,C;
+
 
 end intrinsic;
 
@@ -132,9 +136,13 @@ intrinsic UnitsQuadraticObjectiveMatrices(f::RngMPolElt : prec:=0) -> RngMPolElt
   size of the equation. To find which units to scale by, this intrinsic creates the obective function,
   which is a quadratic function of the form 1/2x^TQx + C^Tx + b. The intrinsic returns Q and C. Note Q 
   not necessarily positive definite, but it will be positive semi definite because it is symmetric.}
-  obj:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
-  Q,C:=ObjectiveFunctionToMatrices(obj);
-  return Q,C;
+  obj,UU:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
+  if UU eq [] then 
+    return "No fundamental units";
+  else 
+    Q,C:=ObjectiveFunctionToMatrices(obj);
+    return Q,C;
+  end if;
 end intrinsic;
 
 
@@ -142,7 +150,6 @@ intrinsic SolveQuadraticProgramReals(Q::AlgMatElt,C::ModMatFldElt : prec:=0) -> 
   {Given a symmetix matrix Q and a vector C, find a minimum of 1/2x^TQx + C^Tx, 
    which is given by Qx=-C}
  
-  
   if IsExact(BaseRing(Parent(Q))) then 
     if prec eq 0 then 
       prec:=20;
@@ -154,6 +161,7 @@ intrinsic SolveQuadraticProgramReals(Q::AlgMatElt,C::ModMatFldElt : prec:=0) -> 
 
   V,N:=NumericalSolution(ChangeRing(Q,k),ChangeRing(Transpose(-C),k));
   return V,N;
+
 end intrinsic;
 
 intrinsic SolveQuadraticProgramReals(obj::RngMPolElt : prec:=0) -> ModMatFldElt
@@ -393,21 +401,27 @@ reduce the size of the coefficients of f.}
     return f, [K!1 : i in [1..var_size+1]];
   end if;
 
-  if prec eq 0 then
-    //wild guess imprecise
-    prec:=Floor(Sqrt(Degree(K)))*100;
-  end if;
-
   K:=BaseRing(Parent(f));
   obj,UU:=UnitsQuadraticObjectiveFunction(f : prec:=prec);
-  Q,C:=ObjectiveFunctionToMatrices(obj);
-  //soln,N:=SolveQuadraticProgramUnconstrained(Q,-C);
-  soln:=SolveQuadraticProgramIntegers(Q,C);
 
-  eps_soln:= [ K!&*[ UU[i]^soln[k*#UU+i] : i in [1..#UU] ] : k in [0..var_size] ];
-  assert #eps_soln eq var_size + 1;
-  guv:=Evaluate(f,[eps_soln[i]*Parent(f).i : i in [1..var_size]])*eps_soln[var_size+1];
-  return guv, eps_soln, soln;
+  if UU eq [] then 
+    return f, [K!1 : i in [1..var_size+1]];
+  else 
+
+    if prec eq 0 then
+      //wild guess imprecise
+      prec:=Floor(Sqrt(Degree(K)))*20;
+    end if;
+
+    Q,C:=ObjectiveFunctionToMatrices(obj : prec:=prec);
+    //soln,N:=SolveQuadraticProgramUnconstrained(Q,-C);
+    soln:=SolveQuadraticProgramIntegers(Q,C : prec:=prec);
+
+    eps_soln:= [ K!&*[ UU[i]^soln[k*#UU+i] : i in [1..#UU] ] : k in [0..var_size] ];
+    assert #eps_soln eq var_size + 1;
+    guv:=Evaluate(f,[eps_soln[i]*Parent(f).i : i in [1..var_size]])*eps_soln[var_size+1];
+    return guv, eps_soln;
+  end if;
 
 end intrinsic;
  
