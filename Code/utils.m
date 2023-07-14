@@ -395,7 +395,7 @@ intrinsic ComputeBadMaps(path::MonStgElt) -> Any
       eof := true;
       break;
     end if;
-    lab1, lab2, C, phi := ReadDataRow(line);
+    lab1, lab2, C, phi, cs := ReadDataRow(line);
     print lab1;
     rams := ComputeRamificationValues(phi);
     bad := [];
