@@ -413,7 +413,8 @@ reduce the size of the coefficients of f.}
       prec:=Floor(Sqrt(Degree(K)))*20;
     end if;
 
-    Q,C:=ObjectiveFunctionToMatrices(obj : prec:=prec);
+    //Q,C:=ObjectiveFunctionToMatrices(obj : prec:=prec);
+    Q,C:=ObjectiveFunctionToMatrices(obj);
     //soln,N:=SolveQuadraticProgramUnconstrained(Q,-C);
     soln:=SolveQuadraticProgramIntegers(Q,C : prec:=prec);
 
