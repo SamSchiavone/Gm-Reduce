@@ -163,7 +163,7 @@ intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits
   list := AllReducedModels(phi : effort:=effort, degree:=degree, NaiveUnits := NaiveUnits);
   f := list[1][1];
   //return f, BaseRing(Parent(f))!1/list[1][2][1];
-  return f, BaseRing(Parent(f))!1/list[1][2][1], list[1][2];
+  return f, BaseRing(Parent(f))!1/list[1][2][1];
 end intrinsic;
 
 intrinsic PlaneModel(phi::FldFunFracSchElt, x_op::FldFunFracSchElt) -> RngMPolElt

@@ -373,7 +373,7 @@ intrinsic ReadDataRow(line::MonStgElt) -> Any
   C := Curve(Spec(R),f);
   KC<t,x> := FunctionField(C);
   phi := (1/a)*t;
-  return lab1, lab2, C, phi;
+  return lab1, lab2, C, phi, cs;
 end intrinsic;
 
 intrinsic ComputeRamificationValues(phi::FldFunFracSchElt)-> Any
@@ -404,6 +404,8 @@ intrinsic ComputeBadMaps(path::MonStgElt) -> Any
         Append(~bad, el);
       end if;
     end for;
+    bad := Setseq(Seqset(bad));
+    print bad;
     if #bad gt 0 then
       Append(~bad_maps, <lab1, bad>);
     end if;
