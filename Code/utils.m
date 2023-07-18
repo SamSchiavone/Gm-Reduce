@@ -376,6 +376,40 @@ intrinsic ReadDataRow(line::MonStgElt) -> Any
   return lab1, lab2, C, phi;
 end intrinsic;
 
+intrinsic DataRowToRecord(line::MonStgElt) -> Any
+  {}
+  lab1, lab2, f, a, cs := Explode(Split(line, "|"));
+  cs := eval cs;
+  if cs eq [-1,1] then
+    K<nu> := RationalsAsNumberField();
+  else
+    K<nu> := NumberField(Polynomial(cs));
+  end if;
+  R<t,x> := PolynomialRing(K,2);
+  f := eval f;
+  a := eval a;
+  C := Curve(Spec(R),f);
+  KC<t,x> := FunctionField(C);
+  phi := (1/a)*t;
+  RF := recformat< n : Integers(),
+  LMFDBLabel,
+  BelyiLabel,
+  PlaneModel,
+  PlaneModelEquation,
+  BelyiMap,
+  BaseRing
+   >;
+  s := rec< RF | >;
+
+  s`LMFDBLabel:=lab1;
+  s`BelyiLabel:=lab2;
+  s`PlaneModel:=C;
+  s`PlaneModelEquation:=f;
+  s`BelyiMap:=phi;
+  s`BaseRing:=K;
+  return s;
+end intrinsic;
+
 intrinsic ComputeRamificationValues(phi::FldFunFracSchElt)-> Any
   {}
 
@@ -409,4 +443,18 @@ intrinsic ComputeBadMaps(path::MonStgElt) -> Any
     end if;
   end while;
   return bad_maps;
+end intrinsic;
+
+
+
+intrinsic TextFileToLines(file::MonStgElt) -> SeqEnum
+  {Turns the text file into a sequence of lines.}
+  F := Open(file, "r");
+  Ls := [];
+  while true do
+    s := Gets(F);
+    if IsEof(s) then break; end if;
+    Append(~Ls,s);
+  end while;
+  return Ls;
 end intrinsic;
