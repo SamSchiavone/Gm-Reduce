@@ -20,7 +20,8 @@ intrinsic BelyiDBToRows(s::BelyiDB : effort := 0, NaiveUnits := false) -> MonStg
     KX := Parent(phi);
     K<nu> := BaseRing(BaseRing(KX));
     f, a := BestModel(phi : effort := effort, NaiveUnits := NaiveUnits);
-    row *:= Sprintf("%o|%o|%o|%o", lmfdb_label, belyi_label, f, K!a);
+    //row *:= Sprintf("%o|%o|%o|%o", lmfdb_label, belyi_label, f, K!a);
+    row *:= Join([lmfdb_label, belyi_label, Sprint(f), Sprint(K!a), Sprint(Coefficients(DefiningPolynomial(K)))], "|");
     if i lt #gal_orbits then
       row *:= "\n";
     end if;
