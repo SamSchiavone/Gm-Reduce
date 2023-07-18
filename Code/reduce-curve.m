@@ -133,9 +133,10 @@ intrinsic AllReducedModels(phi::FldFunFracSchElt : effort := 0, degree := 0, Nai
 
   vprintf GmReduce: "Computing reduced models...";
   t0 := Cputime();
-  reduced_models := [];
+  reduced_models := []; 
   for tup in ts_xs_Fs_sorted do
-    t, x, F := Explode(tup);
+    t, x, F := Explode(tup); 
+    f_pl:=model(t,x);
     fred, scalars := ReducedModel(t, x : NaiveUnits := NaiveUnits);
     //vprintf GmReduce: "t = %o,\nx = %o,\nreduced model = %o\n\n", t, x, fred;
     Append(~reduced_models, <#Sprint(fred), t, x, fred, scalars>);
