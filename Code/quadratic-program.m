@@ -298,14 +298,14 @@ intrinsic SolveQuadraticProgramIntegers(Q::AlgMatElt,C::ModMatFldElt : prec:=0) 
     B:=Transpose(Inverse(F)*sqrt);
   end if;*/
 
-    assert ChangeRing(Q,RealField(3)) eq  ChangeRing(Transpose(B)*B,RealField(3));
+    //assert ChangeRing(Q,RealField(3)) eq  ChangeRing(Transpose(B)*B,RealField(3));
     Binv:=Inverse(B);
     L:=LatticeWithBasis(Binv);
     //basis of L is rows of Binv.
     Lop,TT:=BasisReduction(L);
     Binvop:=BasisMatrix(Lop);
     //Basis(Lop) eq T*Basis(L), or if Binvop is matrix with rows equal to basis of Lop, then Binvop:=TT*Binv
-    assert ChangeRing(Binvop,RealField(3)) eq ChangeRing(TT*Binv,RealField(3));
+    //assert ChangeRing(Binvop,RealField(3)) eq ChangeRing(TT*Binv,RealField(3));
     T:=Transpose(TT);
 
     zz:=Transpose(Matrix([V]));

@@ -380,6 +380,40 @@ intrinsic ReadDataRow(line::MonStgElt) -> Any
   return lab1, lab2, f, a, cs;
 end intrinsic;
 
+intrinsic DataRowToRecord(line::MonStgElt) -> Any
+  {}
+  lab1, lab2, f, a, cs := Explode(Split(line, "|"));
+  cs := eval cs;
+  if cs eq [-1,1] then
+    K<nu> := RationalsAsNumberField();
+  else
+    K<nu> := NumberField(Polynomial(cs));
+  end if;
+  R<t,x> := PolynomialRing(K,2);
+  f := eval f;
+  a := eval a;
+  C := Curve(Spec(R),f);
+  KC<t,x> := FunctionField(C);
+  phi := (1/a)*t;
+  RF := recformat< n : Integers(),
+  LMFDBLabel,
+  BelyiLabel,
+  PlaneModel,
+  PlaneModelEquation,
+  BelyiMap,
+  BaseRing
+   >;
+  s := rec< RF | >;
+
+  s`LMFDBLabel:=lab1;
+  s`BelyiLabel:=lab2;
+  s`PlaneModel:=C;
+  s`PlaneModelEquation:=f;
+  s`BelyiMap:=phi;
+  s`BaseRing:=K;
+  return s;
+end intrinsic;
+
 intrinsic ComputeRamificationValues(phi::FldFunFracSchElt)-> Any
   {}
 

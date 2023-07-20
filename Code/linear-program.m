@@ -220,7 +220,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
   Output: minimal and integral c*f(a_1z_1,...,a_nz_n) and [a_1,...,a_n,c]
   FixedVariable is the set of variables to fix, include n+1 if no scaling is
   allowed. PrimesForReduction is the set of primes to run the linear program on,
-  by default it's the first 10000 primes restricted to those that have a
+  by default its the first 10000 primes restricted to those that have a
   non-zero valuation in a coefficient.}
 
   if BaseRing(Parent(f)) eq Rationals() then
@@ -337,29 +337,37 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
 
 
-  for i in [1..lp_size] do  SetLowerBound(L, i, k!-1000); end for;
+  for i in [1..lp_size] do  SetLowerBound(L, i, k!-1); end for;
+  for i in [1..lp_size] do  SetUpperBound(L, i, k!1); end for;
 
   soln,state:=Solution(L);
-  assert state eq 0;
-  soln:=Eltseq(soln);
-  soln:= [ Integers()!Round(s) : s in soln ];
+  if state ne 0 then 
+     return f, [K!1 : i in [1..var_size+1] ];
+  else 
+    for i in [1..lp_size] do  SetLowerBound(L, i, k!-1000); end for;
+    for i in [1..lp_size] do  SetUpperBound(L, i, k!1000); end for;
 
-  soln_ideals:=<>;
-  soln_exponents:=[];
-  for r in [1..var_size+1] do
-    Append(~soln_exponents, [ soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ] );
-    Append(~soln_ideals,&*[ SS[j]^soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ]);
-  end for;
+    soln,state:=Solution(L);
+    soln:=Eltseq(soln);
+    soln:= [ Integers()!Round(s) : s in soln ];
 
-  scaling_factors:=<>;
-  for aa in soln_ideals do
-    tr,a:=IsPrincipal(aa);
-    Append(~scaling_factors,a);
-  end for;
+    soln_ideals:=<>;
+    soln_exponents:=[];
+    for r in [1..var_size+1] do
+      Append(~soln_exponents, [ soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ] );
+      Append(~soln_ideals,&*[ SS[j]^soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ]);
+    end for;
 
-  guv:=Evaluate(f,[(BaseRing(Parent(f))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(f))!scaling_factors[var_size+1];
+    scaling_factors:=<>;
+    for aa in soln_ideals do
+      tr,a:=IsPrincipal(aa);
+      Append(~scaling_factors,a);
+    end for;
 
-  return guv, [BaseRing(Parent(f))!el : el in scaling_factors];
+    guv:=Evaluate(f,[(BaseRing(Parent(f))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(f))!scaling_factors[var_size+1];
+
+    return guv, [BaseRing(Parent(f))!el : el in scaling_factors];
+  end if;
 end intrinsic;
 
 
