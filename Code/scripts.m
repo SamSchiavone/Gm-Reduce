@@ -84,9 +84,10 @@ intrinsic RedoUnitReduction(path_in::MonStgElt, path_out::MonStgElt) -> Any
       break;
     end if;
     lab1, lab2, f, a, cs := ReadDataRow(line);
+    print lab1;
     f_unit, scalars := reducemodel_units(f);
     a := a/scalars[1];
     Write(path_out, Join([Sprint(el) : el in [* lab1, lab2, f_unit, a, cs *]], "|"));
   end while;
   return Sprintf("Data written to %o", path_out);
-intrinsic;
+end intrinsic;
