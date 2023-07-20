@@ -71,3 +71,22 @@ intrinsic FixBadMaps(path_in::MonStgElt, path_out::MonStgElt) -> Any
   end while;
   return Sprintf("Data written to %o", path_out);
 end intrinsic;
+
+intrinsic RedoUnitReduction(path_in::MonStgElt, path_out::MonStgElt) -> Any
+  {}
+
+  file := Open(path_in, "r");
+  eof := false;
+  while not eof do
+    line := Gets(file);
+    if IsEof(line) then
+      eof := true;
+      break;
+    end if;
+    lab1, lab2, f, a, cs := ReadDataRow(line);
+    f_unit, scalars := reducemodel_units(f);
+    a := a/scalars[1];
+    Write(path_out, Join([Sprint(el) : el in [* lab1, lab2, f_unit, a, cs *]], "|"));
+  end while;
+  return Sprintf("Data written to %o", path_out);
+intrinsic;
