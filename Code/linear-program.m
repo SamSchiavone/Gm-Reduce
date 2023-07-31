@@ -256,6 +256,7 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
       Append(~SS,pp);
     end if;
   end for;
+
   if SS eq [] then
     return f, [K!1 : i in [1..var_size+1] ];
   end if;
@@ -290,9 +291,36 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
     end for;
   end for;
 
-  if h ne 1 then
+
+  //add in the fixed variable constraints
+  if IsHomogeneous(f) then FixedVariables:=[1]; end if;
+  if FixedVariables ne [] then
+    for i in FixedVariables do
+      for j in [0..#SS-1] do
+        zeroes :=[  0 : t in [1..(var_size+1)*#SS-1] ];
+        lhs_fix:= Insert(zeroes, (var_size+1)*j+i,1);
+        lhs_fix:=Matrix(k,1,lp_size,lhs_fix);
+        AddConstraints(L,lhs_fix,Matrix(k,1,1,[0]) : Rel := "eq" );
+      end for;
+    end for;
+  end if;
+
+
+  for i in [1..lp_size] do  SetLowerBound(L, i, k!-100); end for;
+  for i in [1..lp_size] do  SetUpperBound(L, i, k!100); end for;
+
+  soln_real,state:=Solution(L);
+  assert state eq 0;
+  //soln_real is the best possible solution, but we might not be able to principalize the ideals, 
+  //hence we must project onto the subspace defined by forcing the solution to be principal.
+
+  //add in the constraints to be principal one variable at a time
+  if h eq 1 then 
+    soln:=Eltseq(soln_real);
+    soln:= [ Integers()!Round(s) : s in soln ];
+  else 
+    principal_constraints:=[];
     for w in [1..var_size+1] do
-      //add in the constraints to be principal one variable at a time
       zeroes:= [ 0 : t in [1..var_size] ];
       for m in [1..#Generators(Cl)] do
 
@@ -316,58 +344,62 @@ intrinsic reducemodel_padic(f::RngMPolElt : FixedVariables:=[], PrimesForReducti
 
         principal_constraint:=&cat[ Insert(zeroes, w,w-1, [ Eltseq(pm(SS[j]))[m] ]) : j in [1..#SS] ];
         principal_constraint_lhs:=Matrix(k,1,(var_size+1)*(#SS+#Generators(Cl)),principal_constraint cat Clzeroes);
-        principal_constraint_rhs:=Matrix(k,1,1,[0]);
-        AddConstraints(L, principal_constraint_lhs, principal_constraint_rhs : Rel := "eq");
+        Append(~principal_constraints,principal_constraint_lhs);
+        //principal_constraint_rhs:=Matrix(k,1,1,[0]);
+        //AddConstraints(L, principal_constraint_lhs, principal_constraint_rhs : Rel := "eq");
       end for;
     end for;
-  end if;
-
-  //add in the fixed variable constraints
-  if IsHomogeneous(f) then FixedVariables:=[1]; end if;
-  if FixedVariables ne [] then
-    for i in FixedVariables do
-      for j in [0..#SS-1] do
-        zeroes :=[  0 : t in [1..(var_size+1)*#SS-1] ];
-        lhs_fix:= Insert(zeroes, (var_size+1)*j+i,1);
-        lhs_fix:=Matrix(k,1,lp_size,lhs_fix);
-        AddConstraints(L,lhs_fix,Matrix(k,1,1,[0]) : Rel := "eq" );
-      end for;
-    end for;
-  end if;
 
 
 
-  for i in [1..lp_size] do  SetLowerBound(L, i, k!-1); end for;
-  for i in [1..lp_size] do  SetUpperBound(L, i, k!1); end for;
+    /*Mreal_init:=[];
+    for i in [1..lp_size-#principal_constraints] do 
+      Append(~Mreal_init,Insert([ k!0 : j in [1..lp_size-1] ], i,k!1));
+    end for;    
 
-  soln,state:=Solution(L);
-  if state ne 0 then 
-     return f, [K!1 : i in [1..var_size+1] ];
-  else 
-    for i in [1..lp_size] do  SetLowerBound(L, i, k!-1000); end for;
-    for i in [1..lp_size] do  SetUpperBound(L, i, k!1000); end for;
+    for C in principal_constraints do 
+      Append(~Mreal_init,Eltseq(C));
+    end for;*/
 
-    soln,state:=Solution(L);
-    soln:=Eltseq(soln);
-    soln:= [ Integers()!Round(s) : s in soln ];
-
-    soln_ideals:=<>;
-    soln_exponents:=[];
-    for r in [1..var_size+1] do
-      Append(~soln_exponents, [ soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ] );
-      Append(~soln_ideals,&*[ SS[j]^soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ]);
+    Xreal:=[ Eltseq(soln_real)[i] : i in [1..lp_size-#principal_constraints] ];
+    for j in [1..#principal_constraints] do 
+      C:=Eltseq(principal_constraints[j]);
+      z:=-(&+[ Eltseq(soln_real)[i]*C[i] : i in [1..lp_size-#principal_constraints] ])/(C[lp_size-#principal_constraints+j]);
+      Append(~Xreal,z);
     end for;
 
-    scaling_factors:=<>;
-    for aa in soln_ideals do
-      tr,a:=IsPrincipal(aa);
-      Append(~scaling_factors,a);
-    end for;
+    //N is the (integer) subspace defined by the principal constraints.
+    M:=Transpose(Matrix([ChangeRing(C,Integers()) : C in principal_constraints]));
+    W:=Matrix([[0 : i in [1..#principal_constraints]]]);
+    X,N:=Solution(M,W);
+    Lat:=Lattice(N);
+    w:= RSpace(Universe(Xreal), lp_size)!Xreal;
+    op:=ClosestVector(Lat,w);
+    soln:=Eltseq(op);
 
-    guv:=Evaluate(f,[(BaseRing(Parent(f))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(f))!scaling_factors[var_size+1];
-
-    return guv, [BaseRing(Parent(f))!el : el in scaling_factors];
   end if;
+ 
+  //Wreal:=Matrix(k,1,lp_size,[ Eltseq(soln_real)[i] : i in [1..lp_size-#principal_constraints] ]
+               //cat [ k!0 : j in [1..#principal_constraints] ]);
+  //Mreal:=Transpose(Matrix(Mreal_init));
+  //Xreal,Nreal:=Solution(Mreal,Wreal);
+
+  soln_ideals:=<>;
+  soln_exponents:=[];
+  for r in [1..var_size+1] do
+    Append(~soln_exponents, [ soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ] );
+    Append(~soln_ideals,&*[ SS[j]^soln[(var_size+1)*(j-1)+r] : j in [1..#SS] ]);
+  end for;
+
+  scaling_factors:=<>;
+  for aa in soln_ideals do
+    tr,a:=IsPrincipal(aa);
+    Append(~scaling_factors,a);
+  end for;
+
+  guv:=Evaluate(f,[(BaseRing(Parent(f))!scaling_factors[i])*variables[i] : i in [1..var_size]])*BaseRing(Parent(f))!scaling_factors[var_size+1];
+
+  return guv, [BaseRing(Parent(f))!el : el in scaling_factors],soln;
 end intrinsic;
 
 
