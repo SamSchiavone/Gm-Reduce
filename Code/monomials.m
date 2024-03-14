@@ -223,3 +223,85 @@ intrinsic SortSmallFunctions(phi::FldFunFracSchElt, xs::SeqEnum : Prime := 0, Pr
   end while;
   return ts_xs_Fs_sorted[1..Min(effort,#ts_xs_Fs_sorted)];
 end intrinsic;
+
+//intrinsic SortSmallFunctionsTwoFunctions(xs::SeqEnum : Prime := 0, PrimeBound := 0, effort := 6*#xs) -> SeqEnum
+//  {Given a list xs of functions, compute the size of the monomial support of the resulting curve mod a prime. Return the list of functions sorted by this size.}
+//
+//  if #xs eq 0 then
+//   return [];
+//  end if;
+//  d_phi:=Degree(phi);
+//  KX := Parent(phi);
+//  X := Curve(KX);
+//  ngens := Ngens(CoordinateRing(AffinePatch(X,1)));
+//  if PrimeBound eq 0 then
+//    PrimeBound := 32;
+//  end if;
+//  if Prime eq 0 then
+//    P := PrimeForReduction(phi, xs : PrimeBound := PrimeBound);
+//  else
+//    P := Prime;
+//  end if;
+//  //printf "prime used P = %o\n", P;
+//
+//  // reduce small functions by P
+//  X_FF, phi_FF := ReduceRationalFunction(X, phi, P);
+//  xs_FF := [];
+//  _, x_FF := ReduceRationalFunction(X, xs[1], P);
+//  Append(~xs_FF, x_FF);
+//  KX_FF1 := Parent(xs_FF[1]);
+//  //for el in xs do
+//  for i := 2 to #xs do
+//    el := xs[i];
+//    _, x_FF := ReduceRationalFunction(X, el, P);
+//    KX_FF := Parent(x_FF);
+//
+//    iso_x := hom< KX_FF -> KX_FF1 | [KX_FF1.i : i in [1..ngens]]>;
+//    Append(~xs_FF, iso_x(x_FF));
+//  end for;
+//  Nmons := [];
+//  ts_xs_Fs := [];
+//  for i := 1 to #xs do
+//    x_op := xs[i];
+//    x_op_FF := xs_FF[i];
+//    for j := i+1 to #xs do
+//      y_op := xs[j];
+//      y_op_FF := xs_FF[j];
+//      //print "computing model over finite field";
+//      F_res_FF := PlaneModel(x_op_FF, y_op_FF);
+//      Append(~Nmons, [#mons_FF, Degree(x_op_FF) + Degree(y_op_FF)]);
+//      Append(~ts_xs_Fs, [* x_op, y_op, F_res_FF *]);
+//
+//    // S3 Orbit
+//    // TODO: does this need to be used?
+//    /*
+//    F_orb := S3Orbit(F_res_FF, 1);
+//    phi_orb := S3Orbit(phi); // import from Belyi
+//    for i := 1 to #F_orb do
+//       // TODO: double check that these match, i.e., that the S3 orbits are given in the same order
+//        t := phi_orb[i];
+//        F := F_orb[i];
+//        mons_FF := Monomials(F);
+//        Append(~Nmons, [#mons_FF, Degree(x_op_FF)]);
+//        Append(~ts_xs_Fs, [* t, x_op, F *]);
+//    end for;
+//    // printf "%o monomials, max degree = %o\n", #mons_FF, Max([Degree(el) : el in mons_FF]);
+//    */
+//  end for;
+//  ts_xs_Fs_sorted := ts_xs_Fs;
+//  ParallelSort(~Nmons, ~ts_xs_Fs_sorted);
+//  // check that genus is correct, throw out otherwise
+//  g := Genus(X);
+//  m := 1;
+//  while m le #ts_xs_Fs_sorted and m le effort do
+//    tm, xm, Fm := Explode(ts_xs_Fs_sorted[m]);
+//    C_m := Curve(AffineSpace(Parent(Fm)), Fm);
+//    //if Genus(C_m) eq g and Degree(Fm,Parent(Fm).2) eq Degree(phi) then
+//    if Genus(C_m) eq g then
+//      m +:= 1;
+//    else
+//      Remove(~ts_xs_Fs_sorted, m);
+//    end if;
+//  end while;
+//  return ts_xs_Fs_sorted[1..Min(effort,#ts_xs_Fs_sorted)];
+//end intrinsic;

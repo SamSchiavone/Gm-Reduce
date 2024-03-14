@@ -148,6 +148,59 @@ intrinsic AllReducedModels(phi::FldFunFracSchElt : effort := 0, degree := 0, Nai
   return [ <reddat[4], reddat[5]> : reddat in reduced_models];
 end intrinsic;
 
+// input Support of cusps as Qs
+intrinsic AllReducedModelsTwoFunctions(PsQsRs::SeqEnum[PlcCrvElt] : effort := 1, degree := 0, NaiveUnits := false) -> SeqEnum
+  {}
+
+  Kinit:=BaseRing(BaseRing(Universe(PsQsRs)));
+  if effort eq 0 then
+    //wild effort hack
+    effort:=Max(Floor(-2*(Degree(Kinit))/3+11),1);
+  end if;
+  vprintf GmReduce: "now taking effort = %o\n", effort;
+  if degree eq 0 then
+    degree:=Floor((Genus(Curve(Parent(phi)))+3)/2);
+  end if;
+  vprintf GmReduce: "now taking degree = %o\n", degree;
+
+  t0:=Cputime();
+  vprint GmReduce: "Starting to compute SmallFunctions()";
+  xs := SmallFunctions(PsQsRs, degree);
+  t1:=Cputime();
+  vprintf GmReduce: "Done with SmallFunctions(), it took %o seconds\n", t1-t0;
+
+  t0:=Cputime();
+  vprint GmReduce: "Starting to compute SortSmallFunctions()";
+  ts_xs_Fs_sorted := SortSmallFunctionsTwoFunctions(xs : effort := effort);
+
+  while #ts_xs_Fs_sorted eq 0 do
+    degree +:= 1;
+    vprintf GmReduce: "degree is now %o", degree;
+    xs := SmallFunctions(PsQsRs, degree);
+    ts_xs_Fs_sorted := SortSmallFunctionsTwoFunctions(xs : effort := effort);
+  end while;
+  t1:=Cputime();
+  vprintf GmReduce: "Done with SortSmallFunctions(), it took %o seconds\n", t1-t0;
+
+  vprintf GmReduce: "Computing reduced models...";
+  t0 := Cputime();
+  reduced_models := []; 
+  for tup in ts_xs_Fs_sorted do
+    t, x, F := Explode(tup); 
+    f_pl:=model(t,x);
+    fred, scalars := ReducedModel(t, x : NaiveUnits := NaiveUnits);
+    //vprintf GmReduce: "t = %o,\nx = %o,\nreduced model = %o\n\n", t, x, fred;
+    Append(~reduced_models, <#Sprint(fred), t, x, fred, scalars>);
+  end for;
+  t1 := Cputime();
+  vprintf GmReduce: "done. That took %o seconds\n", t1 - t0;
+  Sort(~reduced_models);
+  // return reduced_models;
+  return [ <reddat[4], reddat[5]> : reddat in reduced_models];
+
+
+end intrinsic;
+
 intrinsic BestModel(phi::FldFunFracSchElt : effort := 0, degree := 0, NaiveUnits := -1) -> RngMPolElt
   {return then best model with some search parameters}
   if degree eq 0 then
