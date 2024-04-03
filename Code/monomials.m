@@ -160,7 +160,7 @@ intrinsic SortSmallFunctions(phi::FldFunFracSchElt, xs::SeqEnum : Prime := 0, Pr
   else
     P := Prime;
   end if;
-  //printf "prime used P = %o\n", P;
+  vprintf GmReduce: "prime used P = %o\n", P;
 
   // reduce small functions by P
   X_FF, phi_FF := ReduceRationalFunction(X, phi, P);

@@ -54,13 +54,13 @@ for tup in ts_xs_Fs_sorted do
   f_pl:=model(t,x);
   fred, scalars := ReducedModel(t, x);
   //vprintf GmReduce: "t = %o,\nx = %o,\nreduced model = %o\n\n", t, x, fred;
-  Append(~reduced_models, <#Sprint(fred), t, x, fred, scalars>);
+  Append(~reduced_models, <#Sprint(fred), t, x, fred, scalars, f_pl>);
 end for;
-
-
+reduced_models_sorted := Sort(reduced_models);
 
 
 // Compare with minimal model
 X_min, mp := MinimalModel(X);
 KX_min<v,w> := FunctionField(X_min);
 phi_min := Pushforward(mp, phi);
+
