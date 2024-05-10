@@ -36,7 +36,7 @@ a := 27/4;
 phi_plane := (1/a)*t;
 
 // steps of computation
-AttachSpec("spec");
+AttachSpec("~/github/Gm-Reduce/spec");
 
 // points above 0, 1, oo
 RsandPs := Support(Divisor(phi));
@@ -64,3 +64,12 @@ X_min, mp := MinimalModel(X);
 KX_min<v,w> := FunctionField(X_min);
 phi_min := Pushforward(mp, phi);
 
+// check ramification values
+models := AllReducedModels(phi);
+f, abc := Explode(models[1]);
+X_plane := Curve(Spec(Parent(f)), f);
+print X_plane;
+printf "abc: %o\n", abc;
+a, b, c := Explode(abc);
+KX_plane<tt,xx> := FunctionField(X_plane);
+printf "ramification values of a*t:\n%o\n", ComputeRamificationValues(a*tt);

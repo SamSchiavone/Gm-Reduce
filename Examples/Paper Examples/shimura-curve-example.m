@@ -19,5 +19,13 @@ S<x>:=PolynomialRing(RationalsAsNumberField());
 X:=EllipticCurve(S!x^3 + 27/242*x + 189/10648,S!0);
 KX<x,y> := FunctionField(X);
 phi:= (864/1331*x^9 + 34992/161051*x^7 + 61236/1771561*x^6 + 472392/19487171*x^5 + 1653372/214358881*x^4 + 59049/38974342*x^3 + 11160261/25937424601*x^2 + 78121827/1141246682444*x + 182284263/50214854027536)/(x^12 + 54/121*x^10 + 54/121*x^9 + 2187/29282*x^8 + 2187/14641*x^7 + 98415/1771561*x^6 + 59049/3543122*x^5 + 38795193/3429742096*x^4 + 610173/857435524*x^3 + 129140163/207499396808*x^2 + 531441/51874849202*x + 531441/51874849202);
-ComputeRamificationValues(phi);
+printf "ramification values of original map %o\n", ComputeRamificationValues(phi);
+// reduce model
 models := AllReducedModels(phi);
+f, abc := Explode(models[1]);
+C := Curve(Spec(Parent(f)), f);
+print C;
+printf "abc: %o\n", abc;
+a, b, c := Explode(abc);
+KC<tt,xx> := FunctionField(C);
+printf "ramification values of a*t:\n%o\n", ComputeRamificationValues(a*tt);
