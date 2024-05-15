@@ -67,6 +67,7 @@ intrinsic ReducedEquation(f::RngMPolElt : NaiveUnits := false) -> RngMPolElt
     f_unit, scalars2 := reducemodel_units(f_padic);
     printf "scalars from unit reduction: %o\n", scalars2;
   end if;
+  printf "scalars from unit reduction: %o\n", scalars2;
   t1:=Cputime();
   vprintf GmReduce: "Done with units, it took %o seconds\n", t1-t0;
   return f_unit, [ scalars1[i]*scalars2[i] : i in [1..#scalars1] ];
