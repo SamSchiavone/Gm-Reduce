@@ -15,6 +15,7 @@ phi2 := BelyiMapNum/BelyiMapDen;
 
 AttachSpec("spec");
 SetVerbose("GmReduce",true);
+SetSeed(1);
 S<x>:=PolynomialRing(RationalsAsNumberField());
 X:=EllipticCurve(S!x^3 + 27/242*x + 189/10648,S!0);
 KX<x,y> := FunctionField(X);
