@@ -55,6 +55,7 @@ intrinsic ReducedEquation(f::RngMPolElt : NaiveUnits := false) -> RngMPolElt
   t0:=Cputime();
   vprint GmReduce: "Starting p-adic reduction";
   f_padic, scalars1 := reducemodel_padic(f);
+  printf "scalars from p-adic reduction: %o\n", scalars1;
   t1:=Cputime();
   vprintf GmReduce: "Done with p-adic, it took %o seconds\n", t1-t0;
 
@@ -64,6 +65,7 @@ intrinsic ReducedEquation(f::RngMPolElt : NaiveUnits := false) -> RngMPolElt
     f_unit, scalars2 := reducemodel_units_naive(f_padic);
   else
     f_unit, scalars2 := reducemodel_units(f_padic);
+    printf "scalars from unit reduction: %o\n", scalars2;
   end if;
   t1:=Cputime();
   vprintf GmReduce: "Done with units, it took %o seconds\n", t1-t0;
