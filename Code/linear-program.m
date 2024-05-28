@@ -1,4 +1,3 @@
-//AttachSpec("../Belyi/Code/spec"); // have to change if Belyi repo is elsewhere
 SetClassGroupBounds("GRH");
 
 intrinsic TrialReduction(phi::FldFunFracSchElt) -> FldFunFracSchElt

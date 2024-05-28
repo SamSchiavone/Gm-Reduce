@@ -1,10 +1,3 @@
-AttachSpec("../Belyi/Code/spec"); // have to change if Belyi repo is elsewhere
-AttachSpec("../BelyiDB/code/spec_database"); // have to change if BelyiDB repo is elsewhere
-AttachSpec("../BelyiDB/code/spec_database"); // have to change if BelyiDB repo is elsewhere
-//Attach("../Belyi/Code/belyi_main.m"); // have to change if Belyi repo is elsewhere
-// includes intrinsic S3Action(tau, phi)
-//
-
 intrinsic ReduceRationalFunction(X::Crv, phi::FldFunFracSchElt, P::.) -> Any
   {Given a Belyi map phi defined on a curve X and a prime ideal of the field of definition of X, return the reductions of X and phi mod P}
 
