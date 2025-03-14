@@ -29,7 +29,10 @@ phi := ((2^5*3^3)/11^3)*((x + 3/22)^3*(x^2 - 3/22*x + 63/484)^3)/((x + 6/11)^2*(
 printf "ramification values of original map %o\n", ComputeRamificationValues(phi);
 
 // reduce model
+t0 := Cputime();
 models := AllReducedModels(phi);
+t1 := Cputime();
+printf "time: %o\n", t1-t0;
 //models := AllReducedModels(phi : effort := 60);
 f, abc := Explode(models[1]);
 C := Curve(Spec(Parent(f)), f);
